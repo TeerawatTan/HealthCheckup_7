@@ -1,0 +1,216 @@
+﻿@page
+@model HelpCheck_Web.Pages.Setting.JobTypeModel
+@{
+    ViewData["Title"] = "เพิ่มข้อมูลประเภท";
+    ViewData["useMenu"] = "yes";
+}
+
+@Html.AntiForgeryToken()
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title></title>
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.10.19/css/jquery.dataTables.min.css" />
+    <script src="https://code.jquery.com/jquery-3.3.1.js"></script>
+    <script src="https://cdn.datatables.net/1.10.19/js/jquery.dataTables.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            var table = $('#example').DataTable();
+            $('#example tbody').on('click', 'tr', function () {
+                if ($(this).hasClass('selected')) {
+                    $(this).removeClass('selected');
+                }
+                else {
+                    table.$('tr.selected').removeClass('selected');
+                    $(this).addClass('selected');
+                    $(this).addClass('selected').siblings().removeClass('selected');
+                    var value1 = $(this).find('td:first').html();
+                    var value2 = $(this).find('td:eq(1)').html();
+                    document.getElementById('input-id').value = value2;
+                    document.getElementById('edit').value = value1;
+                    document.getElementById('delete').value = value1;
+                    document.getElementById('delete').disabled = false;
+                    document.getElementById('edit').disabled = false;
+                    document.getElementById('cancelbtn').disabled = true;
+                    document.getElementById('savebtn').disabled = true;
+                    
+                }
+            });
+            
+        });
+    </script>
+    <script>
+
+        function onSave() {
+            let data = {
+                'name': $('#input-id').val()
+            }
+            $.ajax({
+                type: 'POST',
+                url: '/Setting/JobType',
+                headers: {
+                    RequestVerificationToken:
+                        $('input:hidden[name="__RequestVerificationToken"]').val()
+                },
+                contentType: 'application/json; charset=utf-8',
+                dataType: 'json',
+                data: JSON.stringify(data),
+                success: function (response) {
+                    if (response === 'success') {
+                        document.getElementById('headerSave').innerHTML = 'ผลการบันทึกข้อมูล'
+                        document.getElementById('bodySave').innerHTML = 'บันทึกข้อมูลสำเร็จ'
+                        $('#event-modal-save').modal('show');
+                    } else {
+                        alert("เกิดข้อผิดพลาด บันทึกไม่สำเร็จ");
+                    }
+                }
+            });
+        }
+        function getCancle() {
+            document.getElementById('delete').disabled = true;
+            document.getElementById('edit').disabled = true;
+            document.getElementById('cancelbtn').disabled = false;
+            document.getElementById('savebtn').disabled = false;
+            document.getElementById('input-id').value = "";
+
+        }
+        function getEdit() {
+            let data = {
+                'id': $('#edit').val(),
+                'name': $('#input-id').val()
+            }
+            $.ajax({
+                type: 'POST',
+                url: '/Setting/JobType?handler=Edit',
+                headers: {
+                    RequestVerificationToken:
+                        $('input:hidden[name="__RequestVerificationToken"]').val()
+                },
+                contentType: 'application/json; charset=utf-8',
+                dataType: 'json',
+                data: JSON.stringify(data),
+                success: function (response) {
+                    if (response === 'success') {
+                        document.getElementById('headerSave').innerHTML = 'ผลการแก้ไขข้อมูล'
+                        document.getElementById('bodySave').innerHTML = 'แก้ไขข้อมูลสำเร็จ'
+                        $('#event-modal-save').modal('show');
+                    } else {
+                        alert("เกิดข้อผิดพลาด แก้ไขไม่สำเร็จ");
+                    }
+                }
+            });
+        }
+        function getDelete() {
+            let data = {
+                'id': $('#delete').val(),
+            }
+            $.ajax({
+                type: 'POST',
+                url: '/Setting/JobType?handler=Delete',
+                headers: {
+                    RequestVerificationToken:
+                        $('input:hidden[name="__RequestVerificationToken"]').val()
+                },
+                contentType: 'application/json; charset=utf-8',
+                dataType: 'json',
+                data: JSON.stringify(data),
+                success: function (response) {
+                    if (response === 'success') {
+                        document.getElementById('headerSave').innerHTML = 'ผลการลบข้อมูล'
+                        document.getElementById('bodySave').innerHTML = 'ลบข้อมูลสำเร็จ'
+                        $('#event-modal-save').modal('show');
+                    } else {
+                        alert("เกิดข้อผิดพลาด ลบไม่สำเร็จ");
+                    }
+                }
+            });
+        }
+        $('#event-modal-save').on('hidden.bs.modal', function () {
+            $('#event-modal').modal('hide');
+            window.location.reload();
+
+        })
+        
+
+    </script>
+
+</head>
+<body>
+    <div class="setting-wrapper">
+        <form class="setting-form">
+            <div class="form-search-wrapper">
+                <div class="setting-title">
+                    <p>เพิ่มข้อมูลประเภท</p>
+                </div>
+                <p>ประเภท</p>
+                <input type="text" name="workplace" placeholder="กรุณากรอกข้อมูล" class="form-control" id="input-id"
+                       maxlength="200">
+                <span class="clear-input">x</span>
+            </div>
+            <div class="detail-button-wrapper d-flex justify-content-center align-items-center">
+                <button class="detail-button bg-green btn-border-green d-flex justify-content-center align-items-center"
+                        style="font-size:medium;border:none;" type="button" onclick="onSave()" id="savebtn">
+                    บันทึก
+                </button>
+                <button class="detail-button bg-green btn-border-green d-flex justify-content-center align-items-center"
+                        style="font-size:medium;border:none;" type="button" onclick="getEdit()" id="edit" disabled>
+                    แก้ไข
+                </button>
+                <button class="detail-button btn-border-green d-flex justify-content-center align-items-center"
+                        style="font-size: medium; border: none; background-color: #FF4141;color:white" type="button" id="delete" onclick="getDelete()" disabled>
+                    ลบ
+                </button>
+                <div class="detail-button bg-gray d-flex justify-content-center align-items-center" id="cancelbtn" onclick="getCancle()">
+                    <p>ยกเลิก</p>
+                </div>
+            </div>
+            <table id="example" class="display" style="width:100%">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>ประเภทอาชีพ</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var ph in Model.MemberList)
+                    {
+                        <tr><td>@ph.id</td><td>@ph.name</td></tr>
+                    }
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <th>ID</th>
+                        <th>ประเภทอาชีพ</th>
+                    </tr>
+                </tfoot>
+            </table>
+        </form>
+        <div class="modal " id="event-modal-save" tabindex="0" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" style="margin:auto">
+            <div class="modal-dialog" style="margin:100px auto auto auto;width:auto;max-width:900px">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h4 class="modal-title" id="headerSave">ผลการบันทึก</h4>
+                        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                    </div>
+                    <div class="modal-body">
+                        <form name="save-event" method="post">
+                            <div class="form-group">
+                                <label id="bodySave">บันทึกสำเร็จ</label>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">ปิด</button>
+                    </div>
+                </div>
+                @*/.modal-content*@
+            </div>
+            @*/.modal-dialog*@
+        </div>
+    </div>
+</body>
+
+
+
+</html>

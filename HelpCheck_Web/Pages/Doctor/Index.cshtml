@@ -1,0 +1,4062 @@
+﻿@page
+@using Microsoft.AspNetCore.Http
+@model HelpCheck_Web.Pages.Doctor.IndexModel
+@{
+    ViewData["Title"] = "ข้อมูลผู้ป่วย";
+    ViewData["useMenu"] = "yes";
+    if (ViewData["message"] != null)
+    {
+    <script>alert('@ViewData["message"]');</script>
+    }
+}
+@Html.AntiForgeryToken()
+<head>
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.10.19/css/jquery.dataTables.min.css" />
+    @*<script src="https://code.jquery.com/jquery-3.3.1.js"></script>*@
+    <script src="https://cdn.datatables.net/1.10.19/js/jquery.dataTables.min.js"></script>
+</head>
+<style>
+    #rcorners1 {
+        border-radius: 25px;
+        background: #73AD21;
+        padding: 20px;
+        width: 150px
+    }
+
+    table, th, td {
+        border: 1px solid black;
+        border-collapse: collapse;
+    }
+
+    th, td {
+        border-color: #ACACAC;
+    }
+    .tableFixHead {
+        overflow: auto;
+        height: 500px;
+    }
+
+    /* Just common table stuff. Really. */
+</style>
+<form id="doctor" asp-page="Index">
+    <div class="tab">
+        <div class="patient-wrapper row">
+            <div class="patient-name-wrapper col-md-4 col-sm-3">
+                <div class="patient-name">
+                    <p>ข้อมูลผู้ป่วย</p>
+                    <div class="form-search-wrapper">
+                        <input type="text" name="input" placeholder="ค้นหาผู้ป่วย" class="form-control"
+                               id="search-input-id">
+                        <span class="clear-input">x</span>
+                    </div>
+                    <div class="patient-name-profile" id="patient-profile-id" style="overflow: auto;height: 650px;">
+                    </div>
+                </div>
+            </div>
+            <div class="patient-detail-wrapper col-md-8 col-sm-3">
+                <div class="patient-detail">
+                    <div class="title-doctor-detail bg-green">
+                        <span>ประวัติการเจ็บป่วย / โรคประจำตัว</span>
+                    </div>
+                    <div class="row" id="docpatient-profile">
+                        <div class="patient-name-profile col-md-5">
+                            <div id="patient_profile"></div>
+                        </div>
+                        <div class="displayflex col-md-7" id="cardSpaceId">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+    <div class="tab">
+        <div class="step-wrapper">
+            <div class="title-form">
+                <span>ประวัติการเจ็บป่วย / โรคประจำตัว</span>
+            </div>
+            <div class="check-form-wrapper row">
+                <div class="col-6 half-line" id="question_1_haft_left"></div>
+                <div class="col-6" id="question_1_haft_right"></div>
+            </div>
+        </div>
+    </div>
+    <div class="tab">
+        <div class="step-wrapper">
+            <div class="title-form">
+                <span>ประวัติการเจ็บป่วยของบิดา มารดา และพี่น้อง (สายตรง)</span>
+            </div>
+            <div id="question_2"></div>
+            <div class="title-form mt-3">
+                <span>พฤติกรรมสุขภาพส่วนบุคคล</span>
+            </div>
+            <div id="question_3"></div>
+        </div>
+    </div>
+    <div id="tab_doctor" class="tab">
+        <button type="button" class="mb-4" style="color:white">สำหรับแพทย์</button>
+        @*<button type="button" class="mb-4" style="color:white">สำหรับแพทย์2</button>*@
+        <div class="step-wrapper">
+            <h5 class="col-md-3 col-sm-1 card-title highlight-group-item-success text-left">
+                ผลการตรวจร่างกายตามระบบ
+            </h5>
+            <div class="col-md-12 form-group text-left m-3">
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="bodyCheck" id="body1" value="1" style="height: 15px; width: 15px; margin-top: 12px;" onclick="DoctorCheckChange(1)" />
+                    <label class="form-check-label" for="bodyCheck1" style="margin-left: 20px; font-size: 26px; ">
+                        ไม่พบความผิดปกติ
+                    </label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="bodyCheck" id="body2" value="2" style="height: 15px; width: 15px; margin-top: 12px;" onclick="DoctorCheckChange(2)" />
+                    <label class="form-check-label" for="bodyCheck2" style="margin-left: 20px; font-size: 26px; ">
+                        พบความผิดปกติ แนะนำพบแพทย์
+                    </label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="bodyCheck" id="body3" value="3" style="height: 15px; width: 15px; margin-top: 12px;" onclick="DoctorCheckChange(3)" />
+                    <label class="form-check-label" for="bodyCheck3" style="margin-left: 20px; font-size: 26px; ">
+                        พบความเสี่ยงพฤติกรรมสุขภาพ แนะนำปรับเปลี่ยนพฤติกรรม
+                    </label>
+                </div>
+            </div>
+            <div class="col-md-12 form-group text-left m-3" id="nareearea">
+
+            </div>
+            <div class="position-relative form-group text-left mt-5">
+                <textarea name="text" id="bodyText" class="form-control col-md-6" placeholder="บันทึกรายละเอียด"
+                          rows="15" style="background-color:#E5FAF1;font-size:20px"></textarea>
+            </div>
+            <div>
+                <button type="button" id="btnSaveDoctorId" onclick="onSave('doctor')" style="color:white">บันทึก</button>
+            </div>
+
+        </div>
+    </div>
+    <div id="tab_dentist" class="tab">
+        <button type="button" class="mb-4">สำหรับทันตแพทย์</button>
+        <div class="step-wrapper">
+            <h5 class="col-md-3 col-sm-1 card-title highlight-group-item-success text-left">
+                ผลการตรวจสุขภาพช่องปาก
+            </h5>
+            <div class="col-md-6 form-group text-left m-3 row">
+                <div class="form-check ">
+                    <input class="form-check-input" type="radio" name="mouthCheck" id="mouth1" value="1" style="height:15px;width:15px;" />
+                    <label class="form-check-label" for="mouthCheck1" style="font-size: 26px;">
+                        ระดับ 1
+                    </label>
+                </div>
+                <div class="form-check ml-5">
+                    <input class="form-check-input" type="radio" name="mouthCheck" id="mouth2" value="2" style="height:15px;width:15px;"  />
+                    <label class="form-check-label" for="mouthCheck2" style="font-size: 26px;">
+                        ระดับ 2
+                    </label>
+                </div>
+                <div class="form-check ml-5">
+                    <input class="form-check-input" type="radio" name="mouthCheck" id="mouth3" value="3" style="height:15px;width:15px;"  />
+                    <label class="form-check-label" for="mouthCheck3" style="font-size: 26px;">
+                        ระดับ 3
+                    </label>
+                </div>
+                <div class="form-check ml-5">
+                    <input class="form-check-input" type="radio" name="mouthCheck" id="mouth4" value="4" style="height:15px;width:15px;" />
+                    <label class="form-check-label" for="mouthCheck4" style="font-size: 26px;">
+                        ระดับ 4
+                    </label>
+                </div>
+            </div>
+
+            <div class="position-relative form-group text-left mt-5 row">
+
+                <textarea name="text" id="mouthText" class="form-control col-md-5" placeholder="บันทึกรายละเอียด"
+                          rows="15" style="background-color: #E5FAF1; font-size: 20px"></textarea>
+                <div class="col-md-7 form-group text-left m-6 ">
+                    <div class="form-check ">
+                        @*<input class="form-check-input" type="radio" id="mouthA" value="1" style="height:15px;width:15px;" />*@
+                        <input type="checkbox" id="mouthA" value="1"  >
+                        <label class="form-check-label" for="mouthCheckA" style="margin-left: 20px; font-size: 26px;">
+                            A สุขภาพช่องปากดี 
+                        </label>
+                    </div>
+                    <div class="form-check">
+                        @*<input class="form-check-input" type="radio" id="mouthB" value="2" style="height:15px;width:15px;" />*@
+                        <input type="checkbox" id="mouthB" value="2"  >
+                        <label class="form-check-label" for="mouthCheckB" style="margin-left: 20px; font-size: 26px;">
+                            B มีหินปูน มีเหงือกอักเสบ 
+                        </label>
+                    </div>
+                    <div class="form-check">
+                        @*<input class="form-check-input" type="radio" id="mouthB" value="2" style="height:15px;width:15px;" />*@
+                        <input type="checkbox" id="mouthC" value="12"  >
+                        <label class="form-check-label" for="mouthCheckC" style="margin-left: 20px; font-size: 26px;">
+                            C อื่นๆ
+                        </label>
+                    </div>
+                    <div class="form-check">
+                        @*<input class="form-check-input" type="radio" id="mouthD" value="3" style="height:15px;width:15px;" />*@
+                        <input type="checkbox" id="mouthD" value="3"  >
+                        <label class="form-check-label" for="mouthCheckD" style="margin-left: 20px; font-size: 26px;">
+                            D มีฟันผุที่ต้องได้รับการบูรณะ
+                        </label>
+                    </div>
+                    <div class="form-check">
+                        @*<input class="form-check-input" type="radio" id="mouthE" value="4" style="height:15px;width:15px;" />*@
+                        <input type="checkbox" id="mouthE" value="4"  >
+                        <label class="form-check-label" for="mouthCheckE" style="margin-left: 20px; font-size: 26px;">
+                            E มีฟันสึก/แตก/ร้าว ที่ต้องได้รับการบูรณะ
+                        </label>
+                    </div>
+                    <div class="form-check ">
+                        @*<input class="form-check-input" type="radio" id="mouthF" value="5" style="height:15px;width:15px;" />*@
+                        <input type="checkbox" id="mouthF" value="5"  >
+                        <label class="form-check-label" for="mouthCheckF" style="margin-left: 20px; font-size: 26px;">
+                            F เป็นโรคปริทันต์อักเสบที่ยังรักษาได้
+                        </label>
+                    </div>
+                    <div class="form-check ">
+                        @*<input class="form-check-input" type="radio" id="mouthG" value="6" style="height:15px;width:15px;" />*@
+                        <input type="checkbox" id="mouthG" value="6"  >
+                        <label class="form-check-label" for="mouthCheckG" style="margin-left: 20px; font-size: 26px;">
+                            G ควรใส่ฟันทดแทน
+                        </label>
+                    </div>
+                    <div class="form-check ">
+                        @*<input class="form-check-input" type="radio" id="mouthG" value="6" style="height:15px;width:15px;" />*@
+                        <input type="checkbox" id="mouthH" value="13">
+                        <label class="form-check-label" for="mouthCheckH" style="margin-left: 20px; font-size: 26px;">
+                            H อื่นๆ (รวมถึงกรณีมีฟันคุดที่ไม่เคยมีอาการ)
+                        </label>
+                    </div>
+                    <div class="form-check">
+                        @*<input class="form-check-input" type="radio" id="mouthI" value="7" style="height:15px;width:15px;" />*@
+                        <input type="checkbox" id="mouthI" value="7"  >
+                        <label class="form-check-label" for="mouthCheckI" style="margin-left: 20px; font-size: 26px;">
+                            I มีฟันผุที่ใกล้หรือทะลุโพรงประสาทฟัน / RR
+                        </label>
+                    </div>
+                    <div class="form-check ">
+                        @*<input class="form-check-input" type="radio" id="mouthJ" value="8" style="height:15px;width:15px;" />*@
+                        <input type="checkbox" id="mouthJ" value="8"  >
+                        <label class="form-check-label" for="mouthCheckJ" style="margin-left: 20px; font-size: 26px;">
+                            J มีฟันสึก/แตก/ร้าว ที่ใกล้หรือทะลุโพรงประสาทฟัน
+                        </label>
+                    </div>
+                    <div class="form-check">
+                        @*<input class="form-check-input" type="radio" id="mouthK" value="9" style="height:15px;width:15px;" />*@
+                        <input type="checkbox" id="mouthK" value="9"  >
+                        <label class="form-check-label" for="mouthCheckK" style="margin-left: 20px; font-size: 26px;">
+                            K เป็นโรคปริทันต์อักเสบ ฟันโยกมากต้องถอน
+                        </label>
+                    </div>
+                    <div class="form-check">
+                        @*<input class="form-check-input" type="radio" id="mouthL" value="10" style="height:15px;width:15px;" />*@
+                        <input type="checkbox" id="mouthL" value="10"  >
+                        <label class="form-check-label" for="mouthCheckL" style="margin-left: 20px; font-size: 26px;">
+                            L มีฟันคุดที่มีอาการหรือเคยมีอาการอักเสบ ปวด หรือบวม
+                        </label>
+                    </div>
+                    <div class="form-check">
+                        @*<input class="form-check-input" type="radio" id="mouthM" value="11" style="height:15px;width:15px;" />*@
+                        <input type="checkbox" id="mouthM" value="11" >
+                        <label class="form-check-label" for="mouthCheckM" style="margin-left: 20px; font-size: 26px;">
+                            M มีอาการปวด,บวม,อื่นๆ/รอยโรคในช่องปาก
+                        </label>
+                    </div>
+                    <div class="form-check">
+                        @*<input class="form-check-input" type="radio" id="mouthM" value="11" style="height:15px;width:15px;" />*@
+                        <input type="checkbox" id="mouthN" value="14" >
+                        <label class="form-check-label" for="mouthCheckN" style="margin-left: 20px; font-size: 26px;">
+                            N รอยโรคในช่องปาก
+                        </label>
+                    </div>
+                </div>
+            </div>
+            <div>
+                <button type="button" id="btnSaveDentistId" onclick="onSave('dentist')">บันทึก</button>
+            </div>
+        </div>
+    </div>
+    <div id="tab_pys" class="tab">
+        <button type="button" class="mb-4" style="color:white">สำหรับจิตแพทย์</button>
+        @*<button type="button" class="mb-4" style="color:white">สำหรับแพทย์2</button>*@
+        <div class="step-wrapper">
+            <div class="position-relative form-group text-left mt-5">
+                <textarea name="text" id="phychText" class="form-control col-md-6" placeholder="บันทึกรายละเอียด"
+                          rows="15" style="background-color:#E5FAF1;font-size:20px"></textarea>
+            </div>
+            <div>
+                <button type="button" id="btnSaveDoctorId" onclick="onSave('phych')" style="color:white">บันทึก</button>
+            </div>
+
+        </div>
+    </div>
+    <div>
+        <div style="float:right;" id="btnActionId">
+            <button type="button" id="prevBtn" onclick="nextPrev(-1)">ย้อนกลับ</button>
+            <button type="button" id="nextBtn" onclick="nextPrev(1)">ถัดไป</button>
+        </div>
+
+    </div>
+
+</form>
+<div class="modal " id="event-modal" tabindex="0" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" style="margin:auto">
+    <div class="modal-dialog" style="margin:100px auto auto auto;width:auto;max-width:900px">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="header">ผล X-Ray</h4>
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+            </div>
+            <div class="modal-body">
+                <form name="save-event" method="post">
+                    <div class="row">
+                        <div class="form-group col-6">
+                            <label id="idHead">ID</label>
+                            <input type="text" id="room" name="room" class="form-control" disabled />
+                        </div>
+                        <input type="hidden" id="hideTime" />
+                        <div class="form-group col-6">
+                            <label>HN</label>
+                            <input type="text" id="title" name="title" class="form-control" disabled />
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="form-group col-6">
+                            <label id="dateXray">Date</label>
+                            <select type="text" id="dateSectorXray" name="dateXray" class="form-control" onchange="XrayDateChange()">
+                            </select>
+                        </div>
+                        <input type="hidden" id="hideTime" />
+                        <div class="form-group col-6">
+                            <label id="typeXray">Type</label>
+                            <select type="text" id="typeSectorXray" name="typeXray" class="form-control" onchange="XrayTypeChange()">
+                            </select>
+                        </div>
+                    </div>
+                    <div id="forCardXray">
+
+                    </div>
+
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">ปิด</button>
+            </div>
+        </div>
+        @*/.modal-content*@
+    </div>
+    @*/.modal-dialog*@
+</div>
+<div class="modal " id="event-modal-blood" tabindex="0" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" style="margin:auto">
+    <div class="modal-dialog" style="margin:100px auto auto auto;width:auto;max-width:1450px">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="headerBlood">ผลเลือด</h4>
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+            </div>
+            <div class="modal-body">
+                <form name="save-event" method="post">
+                    <div class="row">
+                        <div class="form-group col-4">
+                            <label id="idHeadCode">Group Name</label>
+                            <select type="text" id="codeSector" name="code" class="form-control" onchange="codedropDown()">
+                            </select>
+                        </div>
+
+                        <div class="form-group col-4">
+                            <label id="idHeadSort">Result Date</label>
+                            <select type="text" id="dateSector" name="date" class="form-control" onchange="datedropDown()">
+                            </select>
+                        </div>
+                        <div class="form-group col-4">
+                            <label id="idHead">VN</label>
+                            <select type="text" id="vnSector" name="vn" class="form-control" onchange="vndropDown()"></select>
+                        </div>
+                    </div>
+                    <input type="hidden" id="hideTime" />
+                    @*<div id="fortable" class="tableFixHead">
+                        <table id="myTable" class="display" style="width:100%">
+                            <thead>
+                                <tr>
+                                    <th style="text-align: center; background-color: #FFF0C9 ">Result Date</th>
+                                    <th style="text-align: center; background-color: #FFF0C9 ">Result Name</th>
+                                    <th style="text-align: center; background-color: #FFF0C9 ">Result</th>
+                                    <th style="text-align: center; background-color: #FFF0C9 ">Refference</th>
+                                    <th style="text-align: center; background-color: #FFF0C9 ">Unit</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td style="text-align:center;">26-03-2563</td>
+                                    <td style="text-align:center">HE022-01</td>
+                                    <td style="text-align:center">TT</td>
+                                    <td style="text-align:center">12</td>
+                                    <td style="text-align:center">11.9-13</td>
+                                    <td style="text-align:center">mgEq/L</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>*@
+                <div class="row" style="width:100%" id="table2Colume">
+                    <div class="col-12">
+                        <div class="row" style="background-color: #DAF8F2">
+                            <div class="col-3" style='text-align: start; font-size: 20px; color: black ;font-weight:bold'>Result Name</div>
+                            <div class="col-3" style='text-align: center; font-size: 20px; color: black; font-weight: bold '>Result</div>
+                            <div class="col-3" style='text-align: center; font-size: 20px; color: black; font-weight: bold '>Ref</div>
+                            <div class="col-3" style='text-align: start; font-size: 20px; color: black; font-weight: bold '>Unit</div>
+                        </div>
+                    </div>
+                    <div class="col-12" id="Colum1">
+
+                    </div>
+                </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">ปิด</button>
+            </div>
+        </div>
+        @*/.modal-content*@
+    </div>
+    @*/.modal-dialog*@
+</div>
+<div class="modal " id="event-modal-save" tabindex="0" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" style="margin:auto">
+    <div class="modal-dialog" style="margin:100px auto auto auto;width:auto;max-width:900px">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="header">ผลการบันทึก</h4>
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+            </div>
+            <div class="modal-body">
+                <form name="save-event" method="post">
+                    <div class="form-group">
+                        <label>บันทึกสำเร็จ</label>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">ปิด</button>
+            </div>
+        </div>
+        @*/.modal-content*@
+    </div>
+    @*/.modal-dialog*@
+</div>
+<div class="modal " id="event-modal-alert" tabindex="0" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" style="margin:auto">
+    <div class="modal-dialog" style="margin:100px auto auto auto;width:auto;max-width:900px">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="header">ผลการบันทึก</h4>
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+            </div>
+            <div class="modal-body">
+                <form name="save-event" method="post">
+                    <div class="form-group">
+                        <label id="alerttext">กรอกข้อมูลไม่ครบ กรุณาลองใหม่อีกครั้ง</label>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">ปิด</button>
+            </div>
+        </div>
+        @*/.modal-content*@
+    </div>
+    @*/.modal-dialog*@
+</div>
+<div class="modal " id="event-modal-alert" tabindex="0" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" style="margin:auto">
+    <div class="modal-dialog" style="margin:100px auto auto auto;width:auto;max-width:900px">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="header">ผลการบันทึก</h4>
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+            </div>
+            <div class="modal-body">
+                <form name="save-event" method="post">
+                    <div class="form-group">
+                        <label>มีการเปลี่ยนแปลงผลการตรวจ ต้องทำการบันทึกก่อนออกจากหน้า</label>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">ปิด</button>
+            </div>
+        </div>
+        @*/.modal-content*@
+    </div>
+    @*/.modal-dialog*@
+</div>
+<div class="modal " id="event-modal-blood-between" tabindex="0" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" style="margin:auto">
+    <div class="modal-dialog" style="margin:100px auto auto auto;width:auto;max-width:1450px">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="headerBloodBetween">ผลเลือด</h4>
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+            </div>
+            <div class="modal-body">
+                <form name="save-event" method="post">
+                    
+                    <div id="fortable" class="tableFixHead">
+                        @*<table id="myTable" class="display" style="width:100%">
+                            <thead>
+                                <tr>
+                                    <th style="text-align: center; background-color: #FFF0C9 " id="theader0">Result Name</th>
+                                    <th style="text-align: center; background-color: #FFF0C9 " id="theader1"></th>
+                                    <th style="text-align: center; background-color: #FFF0C9 " id="theader2"></th>
+                                    <th style="text-align: center; background-color: #FFF0C9 " id="theader3"></th>
+                                    <th style="text-align: center; background-color: #FFF0C9 " id="theader4"></th>
+                                    <th style="text-align: center; background-color: #FFF0C9 " id="theader5"></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td style="text-align:center;">pH</td>
+                                    <td style="text-align:center;">7</td>
+                                    <td style="text-align:center">7</td>
+                                    <td style="text-align:center">7</td>
+                                    <td style="text-align:center">7</td>
+                                    <td style="text-align:center">7</td>
+                                    <td style="text-align:center">7</td>
+                                </tr>
+                            </tbody>
+                        </table>*@
+                        <div class="row" style="width:100%" id="tableBloodColume">
+                            <div class="col-12">
+                                <div class="row" style="background-color: #DAF8F2">
+                                    <div class="col-2" style='text-align: center; font-size: 20px; font-weight: bold; color: black; border: 1px solid #eae6e6;' id="theader">Result Name</div>
+                                    <div class="col-2" style='text-align: center; font-size: 20px; font-weight: bold; color: black; border: 1px solid #eae6e6; ' id="theader0"></div>
+                                    <div class="col-2" style='text-align: center; font-size: 20px; font-weight: bold; color: black; border: 1px solid #eae6e6; ' id="theader1"></div>
+                                    <div class="col-2" style='text-align: center; font-size: 20px; font-weight: bold; color: black; border: 1px solid #eae6e6; ' id="theader2"></div>
+                                    <div class="col-2" style='text-align: center; font-size: 20px; font-weight: bold; color: black; border: 1px solid #eae6e6; ' id="theader3"></div>
+                                    <div class="col-2" style='text-align: center; font-size: 20px; font-weight: bold; color: black; border: 1px solid #eae6e6; ' id="theader4"></div>
+                                </div>
+                            </div>
+                            <div class="col-12" id="ShowDetail">
+
+                            </div>
+                        </div>
+                    </div>
+                    
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">ปิด</button>
+            </div>
+        </div>
+        @*/.modal-content*@
+    </div>
+    @*/.modal-dialog*@
+</div>
+<div class="modal " id="event-modal-nareevate" tabindex="0" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" style="margin:auto">
+    <div class="modal-dialog" style="margin:100px auto auto auto;width:auto;max-width:900px">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="header">บันทึกผลการตรวจนารีเวช</h4>
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+            </div>
+            <div class="modal-body">
+                <form name="save-event" method="post">
+                    <div class="form-group">
+                        <h5 class="col-md-12 col-sm-12 card-title highlight-group-item-success text-left">
+                            ผลการตรวจภายใน
+                        </h5>
+                        <div class="col-md-12 form-group text-left m-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="insideCheck" id="inside1" value="0" style="height: 15px; width: 15px; margin-top: 12px;" onclick="checkInside(0)" />
+                                <label class="form-check-label" for="bodyCheck1" style="margin-left: 20px; font-size: 26px; ">
+                                    ไม่พบความผิดปกติ
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="insideCheck" id="inside2" value="1" style="height: 15px; width: 15px; margin-top: 12px;" onclick="checkInside(1)" />
+                                <label class="form-check-label" for="bodyCheck2" style="margin-left: 20px; font-size: 26px; ">
+                                    พบความผิดปกติ
+                                </label>
+                            </div>
+                        </div>
+                        <div>
+                            <textarea name="text" id="insideText" class="form-control" placeholder="บันทึกรายละเอียด"
+                                      rows="15" style="background-color: #E5FAF1; font-size: 20px;height: 100px"></textarea>
+                        </div>
+                        <h5 class="col-md-12 col-sm-12 card-title highlight-group-item-success text-left">
+                            ผลการตรวจมะเร็งปากมดลูก
+                        </h5>
+                        <div class="col-md-12 form-group text-left m-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="pcancerCheck" id="pcancer1" value="0" style="height: 15px; width: 15px; margin-top: 12px;" />
+                                <label class="form-check-label" for="bodyCheck1" style="margin-left: 20px; font-size: 26px; ">
+                                    ตรวจ
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="pcancerCheck" id="pcancer2" value="1" style="height: 15px; width: 15px; margin-top: 12px;" />
+                                <label class="form-check-label" for="bodyCheck2" style="margin-left: 20px; font-size: 26px; ">
+                                    ไม่ได้ตรวจ
+                                </label>
+                            </div>
+                        </div>
+                        <button type="button" id="btnShowPrep" style="color: white; background-color: cornflowerblue">ผลตรวจมะเร็งปากมดลูก</button>
+                    </div>
+                    
+                </form>
+                <button type="button" id="btnSaveDoctorId" onclick="onSave('doctor')" style="color:white">บันทึก</button>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">ปิด</button>
+            </div>
+        </div>
+        @*/.modal-content*@
+    </div>
+    @*/.modal-dialog*@
+</div>
+<div class="modal " id="event-modal-prep" tabindex="0" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" style="margin:auto" data-backdrop="static">
+    <div class="modal-dialog" style="margin:100px auto auto auto;width:auto;max-width:900px">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="header">ผลตรวจมะเร็งปากมดลูก</h4>
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+            </div>
+            <div class="modal-body">
+                <form name="save-event" method="post">
+                    <div class="row">
+                        <div class="form-group col-6">
+                            <label id="idHead">VN</label>
+                            <input type="text" id="vnPrep" name="room" class="form-control" disabled />
+                        </div>
+                        <input type="hidden" id="hideTime" />
+                        <div class="form-group col-6">
+                            <label>HN</label>
+                            <input type="text" id="hnPrep" name="title" class="form-control" disabled />
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="form-group col-6">
+                            <label id="dateXray">Date</label>
+                            <select type="text" id="dateSectorPrep" name="datePrep" class="form-control" onchange="">
+                            </select>
+                        </div>
+                    </div>
+                    <div id="forCardPrep">
+
+                    </div>
+
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">ปิด</button>
+            </div>
+        </div>
+        @*/.modal-content*@
+    </div>
+    @*/.modal-dialog*@
+</div>
+<script>
+    
+
+    $('#event-modal-save').on('hidden.bs.modal', function () {
+        window.location.reload();
+    })
+    let flag = 0;
+    $(document).ready(function () {
+        $('#btnActionId').hide();
+        $("#search-input-id").keyup(searchPatient);
+
+    });
+    function checkInside(check) {
+        if (check == 0) {
+            $('#insideText').prop('disabled', true);
+        }
+        else {
+            $('#insideText').prop('disabled', false);
+        }
+    }
+    var memberId = 0;
+    var memberIdCard = "";
+    var memberHn = "";
+    //$(".search-input-id").on('keyup', function (e) {
+    //    if (e.key === 'Enter' || e.keyCode === 13) {
+    //        // Do something
+    //        console.log("enter")
+    //    }
+    //});
+    function searchPatient() {
+        var test = $("#search-input-id").val();
+        if (test.length > 0) {
+            var txtSearch = $("#search-input-id").val();
+            $.ajax({
+                type: "GET",
+                url: "/Patient?handler=PatientAppointment",
+                data: { "search": txtSearch },
+                success: function (response) {
+                    $('#patient-profile-id').html('');
+                    if (response) {
+                        response.forEach((data, i) => {
+                            $('#patient-profile-id').append(
+                                `<div class="profile">
+                                    <div class="profile-image">
+                                        <img class="img-profile-set" src="/assets/images/icon-personal.png" alt="image.jpg" />
+                                    </div>
+                                    <div class="profile-name">
+                                        <p id="patientname">${data.fullName}</p>
+                                        <p id="patientdetail">${data.agencyName} ${data.jobTypeName} ${data.workPlaceName}</p>
+                                    </div>
+                                    <input id="profile-memberId" name="profile-memberId" value="${data.memberId}" asp-for="${data.memberId}" readonly="readonly" hidden="hidden" />
+                                </div>`)
+                        });
+                    }
+                }
+            });
+        }
+    }
+    var input = document.getElementById("search-input-id");
+    input.addEventListener("keypress", function (event) {
+        if (event.key === "Enter") {
+            event.preventDefault();
+            searchPatient();
+            document.getElementById("patient-profile-id").click();
+        }
+    });
+    function nareeClick() {
+        $('#event-modal-nareevate').modal('show');
+    }
+
+    $('#patient-profile-id').on('click', '.profile', function () {
+        $(".patient-name-wrapper .profile").css({ "background-color": "unset", "border": "1px solid #A6B1C2" });
+        $(".patient-name-wrapper .profile #patientname").css({ "color": "#646D82" });
+        $(".patient-name-wrapper .profile #patientdetail").css({ "color": "#2CD889" });
+        $(this).css({ "background-color": "#2CD889", "border": "unset" });
+        $(this).find("p").css("color", "#ffffff");
+        $('#docpatient-profile').show();
+        memberId = $(this).find("#profile-memberId").val();
+        getPatientInfo(memberId);
+        getPatientPhysicalDetail(memberId);
+        getAnswerChoice(memberId);
+        getDoctorCheck(memberId); //edit
+        getDentistCheck(memberId);
+        getPhychCheck(memberId);
+        if (memberId > 0) {
+            $('#btnActionId').show();
+        } else {
+            $('#btnActionId').hide();
+        }
+    });
+    function Clear() {
+        const aBtn = document.getElementById('mouthA');
+        const BBtn = document.getElementById('mouthB');
+        const DBtn = document.getElementById('mouthD');
+        const EBtn = document.getElementById('mouthE');
+        const FBtn = document.getElementById('mouthF');
+        const GBtn = document.getElementById('mouthG');
+        const IBtn = document.getElementById('mouthI');
+        const JBtn = document.getElementById('mouthJ');
+        const KBtn = document.getElementById('mouthK');
+        const LBtn = document.getElementById('mouthL');
+        const MBtn = document.getElementById('mouthM');
+        const CBtn = document.getElementById('mouthC');
+        const HBtn = document.getElementById('mouthH');
+        const NBtn = document.getElementById('mouthN');
+        aBtn.checked = false;
+        BBtn.checked = false;
+        DBtn.checked = false;
+        EBtn.checked = false;
+        FBtn.checked = false;
+        GBtn.checked = false;
+        IBtn.checked = false;
+        JBtn.checked = false;
+        KBtn.checked = false;
+        LBtn.checked = false;
+        MBtn.checked = false;
+        CBtn.checked = false;
+        HBtn.checked = false;
+        NBtn.checked = false;
+    }
+    function getAnswerChoice(memberId) {
+        $.ajax({
+            type: "GET",
+            url: "/Doctor?handler=Answer",
+            data: { "id": memberId },
+            success: function (response) {
+                $('#question_1_haft_left').html('');
+                $('#question_1_haft_right').html('');
+                $('#question_2').html('');
+                $('#question_3').html('');
+                var question_detail_1_l = '';
+                var question_detail_1_r = '';
+                var question_detail_2 = '';
+                var question_detail_3 = '';
+
+                response.forEach(data => {
+                    var color = "c-green"
+                    switch (data.choiceID) {
+                        case 0:
+                            color = "c-red"
+                            break;
+                        case 3:
+                            color = "c-red"
+                            break;
+                        case 4:
+                            color = "c-red"
+                            break;
+                        case 9:
+                            color = "c-red"
+                            break;
+                        case 10:
+                            color = "c-red"
+                            break;
+                        case 11:
+                            color = "c-red"
+                            break;
+                        case 12:
+                            color = "c-red"
+                            break;
+                        case 16:
+                            color = "c-red"
+                            break;
+                        case 17:
+                            color = "c-red"
+                            break;
+                        case 18:
+                            color = "c-red"
+                            break;
+                        case 19:
+                            color = "c-red"
+                            break;
+                        case 21:
+                            color = "c-red"
+                            break;
+                        case 22:
+                            color = "c-red"
+                            break;
+                        case 23:
+                            color = "c-red"
+                            break;
+                        case 24:
+                            color = "c-red"
+                            break;
+                        case 25:
+                            color = "c-red"
+                            break;
+                        case 26:
+                            color = "c-red"
+                            break;
+                        case 27:
+                            color = "c-red"
+                            break;
+                        case 28:
+                            color = "c-red"
+                            break;
+                        case 29:
+                            color = "c-red"
+                            break;
+                        case 30:
+                            color = "c-red"
+                            break;
+                        case 31:
+                            color = "c-red"
+                            break;
+                        case 35:
+                            color = "c-red"
+                            break;
+                        case 43:
+                            color = "c-red"
+                            break;
+                        case 44:
+                            color = "c-red"
+                            break;
+                        case 45:
+                            color = "c-red"
+                            break;
+                        case 46:
+                            color = "c-red"
+                            break;
+                        case 48:
+                            color = "c-red"
+                            break;
+                        case 49:
+                            color = "c-red"
+                            break;
+                        case 50:
+                            color = "c-red"
+                            break;
+                        case 52:
+                            color = "c-red"
+                            break;
+                        case 53:
+                            color = "c-red"
+                            break;
+                        case 54:
+                            color = "c-red"
+                            break;
+                        default:
+                            color = "c-green"
+                    }
+
+                    if (data.questionID <= 17) {
+                        if (data.questionID <= 8) {
+                            question_detail_1_l += `
+                             <div class="check-group">
+                                <p class="title-check"> ${data.questionName} </p>
+                                <div class="radio-wrapper">
+                                    <input type="checkbox" checked onclick="return false;">
+                                    <span class="${color}"> ${data.asnwerKeyIn ? data.asnwerKeyIn : data.choiceName} </span>
+                                </div>
+                            </div>`;
+                        }
+                        if (data.questionID > 8) {
+                            question_detail_1_r += `
+                            <div class="check-group">
+                                <p class="title-check"> ${data.questionName} </p>
+                                <div class="radio-wrapper">
+                                    <input type="checkbox" checked onclick="return false;">
+                                    <span class="${color}"> ${data.asnwerKeyIn ? data.asnwerKeyIn : data.choiceName} </span>
+                                </div>
+                            </div>`;
+                        }
+                    }
+                    if (data.questionID > 17 && data.questionID <= 20) {
+                        question_detail_2 +=
+                            `<div class="radio-wrapper font-24 pl-5">
+                                <div>
+                                    <span class="c-purple font-weight-bold"> ${data.questionName} </span>
+                                    <span class="ml-5"><input type="checkbox" checked onclick="return false;"></span>
+                                    <span class="${color}"> ${data.asnwerKeyIn ? data.asnwerKeyIn : data.choiceName} </span>
+                                </div>
+                            </div>`;
+                    }
+                    if (data.questionID > 20 && data.questionID <= 42) {
+                        question_detail_3 +=
+                            `<div class="radio-wrapper font-24 pl-5">
+                                <div>
+                                    <span class="c-purple font-weight-bold"> ${data.questionName} </span>
+                                    <span class="ml-5"><input type="checkbox" checked  onclick="return false;"></span>
+                                    <span class="${color}"> ${data.asnwerKeyIn ? data.asnwerKeyIn : data.choiceName} </span>
+                                </div>
+                            </div>`;
+                    }
+                    if (data.questionID > 42) {
+                        question_detail_3 +=
+                                `<div class="radio-wrapper font-24 pl-5">
+                                <div>
+                                    <span class="c-purple font-weight-bold"> ${data.questionName} </span>
+                                    <span class="ml-5"><input type="checkbox" checked onclick="return false;"></span>
+                                    <span class="${color}"> ${data.asnwerKeyIn ? data.asnwerKeyIn : data.choiceName} </span>
+                                </div>
+                            </div>`;
+
+                    }
+
+                });
+
+                $('#question_1_haft_left').append(question_detail_1_l);
+                $('#question_1_haft_right').append(question_detail_1_r);
+                $('#question_2').append(question_detail_2);
+                $('#question_3').append(question_detail_3);
+
+            },
+            error: function (response) {
+                $('#question_1_haft_left').html('');
+                $('#question_1_haft_right').html('');
+                $('#question_2').html('');
+                $('#question_3').html('');
+            }
+        });
+    }
+
+    var currentTab = 0;
+    showTab(currentTab);
+
+    function showTab(n) {
+        var x = document.getElementsByClassName("tab");
+        x[n].style.display = "block";
+        if (n == 0) {
+            document.getElementById("prevBtn").style.pointerEvents = "none";
+            document.getElementById("prevBtn").style.backgroundColor = "#bbbbbb";
+        } else {
+            document.getElementById("prevBtn").style.pointerEvents = "auto";
+            document.getElementById("prevBtn").style.backgroundColor = "#04AA6D";
+        }
+        if (n == 4) {   // ทันตแพทย์
+            document.getElementById("nextBtn").style.pointerEvents = "none";
+            document.getElementById("nextBtn").style.backgroundColor = "#bbbbbb";
+            document.getElementById("prevBtn").style.backgroundColor = "#04AA6D";
+            //document.getElementById("nextBtn").innerText = "บันทึก";
+            //document.getElementById("nextBtn").classList.add("btn-detist-click");
+            //$('.btn-detist-click').click(function (e) {
+            //    e.preventDefault();
+            //    onSave('dentist');
+            //    $(this).off(e);
+            //});
+        } else {
+            document.getElementById("nextBtn").style.pointerEvents = "auto";
+            if (n == 3) {   // แพทย์
+                document.getElementById("nextBtn").style.pointerEvents = "none";
+                document.getElementById("nextBtn").style.backgroundColor = "#bbbbbb";
+                document.getElementById("prevBtn").style.backgroundColor = "#04AA6D";
+                //document.getElementById("nextBtn").innerText = "บันทึก";
+                //document.getElementById("nextBtn").classList.add("btn-doctor-click");
+                //$('.btn-doctor-click').click(function (e) {
+                //    e.preventDefault();
+                //    onSave('doctor');
+                //    $(this).off(e);
+                //});
+            } else if (n == 5) {
+                document.getElementById("nextBtn").style.pointerEvents = "none";
+                document.getElementById("nextBtn").style.backgroundColor = "#bbbbbb";
+                document.getElementById("prevBtn").style.backgroundColor = "#04AA6D";
+            }else {
+                document.getElementById("nextBtn").style.backgroundColor = "#04AA6D";
+                document.getElementById("nextBtn").innerText = "ถัดไป";
+            }
+        }
+    }
+
+    function nextPrev(n) {
+        var x = document.getElementsByClassName("tab");
+        x[currentTab].style.display = "none";
+        if (currentTab > -1 && currentTab < 6) {
+            if (currentTab == 4 || currentTab == 2 && @ViewData["roleId"] && @ViewData["roleId"] === 4) {
+                if (n == 1) {
+                    currentTab = 4
+                } else if (n == -1 && currentTab == 4) {
+                    var sub = $('#mouthText').val();
+                    if (CheckDenBfSave != -1 || checkDenDetail != sub) {
+                        $('#event-modal-alert').modal('show');
+                    } else {
+                        currentTab = 0;
+                    }
+                } else {
+                    currentTab = currentTab + n;
+                }
+            } else if (currentTab == 3 || currentTab == 2 && @ViewData["roleId"] && @ViewData["roleId"] === 2) {
+                if (n == 1) {
+                    currentTab = 3
+                } else {
+                    if (CheckDocBfSave != -1 || CheckDocBoobBfSvae != 2 || checkDocDetail != $('#bodyText').val()) {
+                        $('#event-modal-alert').modal('show');
+                    }
+                    else {
+                        currentTab = currentTab + n;
+                    }
+                }
+            }else if ( @ViewData["roleId"] === 4) {
+                if (n == 1) {
+                    currentTab = 4
+                } else {
+                    currentTab = 1;
+                }
+            } else if ( @ViewData["roleId"] === 6 || currentTab == 5) {
+                if (currentTab == 2) {
+                    if (n == 1) {
+                        currentTab = 5
+                    }
+                    else {
+                        currentTab = currentTab + n;
+                    }
+                } else if (currentTab == 5) {
+                    if (n == -1) {
+                        currentTab = 2
+                    }
+                }
+                else {
+                    currentTab = currentTab + n;
+                }
+            } else {
+                currentTab = currentTab + n;
+            }
+        }
+        showTab(currentTab);
+    }
+    function makeRequest(method, reqestUrl, data) {
+        return $.ajax({
+            type: method,
+            url: 'http://192.168.164.99:4000'  + reqestUrl,
+            contentType: "application/json",
+            dataType: "json",
+            data: data ? JSON.stringify(data) : null
+        })
+    }
+    var dataXray = null;
+
+
+    function XrayDateChange() {
+        $('#forCardXray').empty();
+        $('#typeSectorXray').empty();
+        var textResualt = dataXray;
+        var dropDateVal = $("#dateSectorXray").val()
+        var listTypeXray = [];
+        var subTypeXray = null;
+        var colors = ['#DAF8F2', '#FFF0C9', '#DAF8F2', '#FFF0C9', '#DAF8F2', '#FFF0C9', '#DAF8F2', '#FFF0C9'];
+        Object.keys(textResualt).forEach(key => {
+            if (dropDateVal == textResualt[key].result_date) {
+                if (subTypeXray != textResualt[key].xray_group) {
+                    listTypeXray.push(textResualt[key].xray_group);
+                    subTypeXray = textResualt[key].xray_group;
+                }
+            }
+        });
+        let uniqueChars = listTypeXray.filter((element, index) => {
+            return listTypeXray.indexOf(element) === index;
+        });
+        renderSelector(uniqueChars, "#typeSectorXray");
+
+        var dropTypeVal = $("#typeSectorXray").val()
+
+        Object.keys(textResualt).forEach(key => {
+            // 👉️ "name", "country"
+            //console.log(oldRel[key]); // 👉️ "Tom", "Chile"
+            document.getElementById("room").value = textResualt[key].id;
+            document.getElementById("title").value = textResualt[key].hn;
+            if (dropDateVal == textResualt[key].result_date && dropTypeVal == textResualt[key].xray_group) {
+                $('#forCardXray').append(`
+                        <div class="detail-card-wrapper-modal" style="background-color:${colors[key]};border-radius: 20px;padding: 20px;">
+                            <div class="detail-card">
+                                <div id="resultText${key}" style='font-size:28px;color:black '>
+                                    ${textResualt[key].result}
+                                </div>
+                            </div>
+                        </div>
+                        <br />`);
+            }
+
+
+        });
+        if (textResualt != null) {
+            var dropDateVal = $("#dateSectorXray").val()
+            var dropTypeVal = $("#typeSectorXray").val()
+            Object.keys(textResualt).forEach(key => {
+                if (dropDateVal == textResualt[key].result_date && dropTypeVal == textResualt[key].xray_group) {
+                    document.getElementById(`resultText${key}`).innerText = ``;
+                    document.getElementById(`resultText${key}`).innerText = textResualt[key].result;
+                }
+
+
+            });
+        }
+    }
+    function XrayTypeChange() {
+        $('#forCardXray').empty();
+        var textResualt = dataXray;
+        var dropDateVal = $("#dateSectorXray").val()
+        var colors = ['#DAF8F2', '#FFF0C9', '#DAF8F2', '#FFF0C9', '#DAF8F2', '#FFF0C9', '#DAF8F2', '#FFF0C9'];
+        var dropTypeVal = $("#typeSectorXray").val()
+
+        Object.keys(textResualt).forEach(key => {
+            // 👉️ "name", "country"
+            //console.log(oldRel[key]); // 👉️ "Tom", "Chile"
+            document.getElementById("room").value = textResualt[key].id;
+            document.getElementById("title").value = textResualt[key].hn;
+            if (dropDateVal == textResualt[key].result_date && dropTypeVal == textResualt[key].xray_group) {
+                $('#forCardXray').append(`
+                        <div class="detail-card-wrapper-modal" style="background-color:${colors[key]};border-radius: 20px;padding: 20px;">
+                            <div class="detail-card">
+                                <div id="resultText${key}" style='font-size:28px;color:black '>
+                                    ${textResualt[key].result}
+                                </div>
+                            </div>
+                        </div>
+                        <br />`);
+            }
+
+
+        });
+        if (textResualt != null) {
+            var dropDateVal = $("#dateSectorXray").val()
+            var dropTypeVal = $("#typeSectorXray").val()
+            Object.keys(textResualt).forEach(key => {
+                if (dropDateVal == textResualt[key].result_date && dropTypeVal == textResualt[key].xray_group) {
+                    document.getElementById(`resultText${key}`).innerText = ``;
+                    document.getElementById(`resultText${key}`).innerText = textResualt[key].result;
+                }
+
+
+            });
+        }
+    }
+    function renderSelector(dataArray, appendElement) {
+        dataArray.forEach((data) => {
+            $("<option/>")
+                .val(data)
+                .text(data)
+                .appendTo(appendElement)
+        })
+    }
+    var dataTable = null;
+    function getBlood(hn) {
+        $.ajax({
+            type: "GET",
+            url: "/Doctor?handler=BloodResult",
+            data: { "hn": hn },
+            success: function (response) {
+                if (response.data != []) {
+                    var textResualt = null;
+                    Object.keys(response).forEach(key => {
+                        textResualt = response[key]; // 👉️ "name", "country"
+                        //console.log(oldRel[key]); // 👉️ "Tom", "Chile"
+                    });
+                    $('#dateSector').empty();
+                    $('#vnSector').empty();
+                    $('#codeSector').empty();
+                    $("#Colum1").html("");
+                    $("#Colum2").html("");
+                    var listDateData = [];
+                    var listVNData = [];
+                    var listCodeData = [];
+                    var subdatedata = null;
+                    var subVNdata = null;
+                    var subCodedata = null;
+                    if (textResualt.length > 0) {
+                        dataTable = textResualt;
+                        Object.keys(textResualt).forEach(key => {
+                            if (subdatedata != textResualt[key].result_date) {
+                                listDateData.push(textResualt[key].result_date);
+                                subdatedata = textResualt[key].result_date;
+                            }
+                        });
+                        renderSelector(listDateData, "#dateSector");
+                        var datedropVal = $("#dateSector").val()
+                        Object.keys(textResualt).forEach(key => {
+                            if (subVNdata != textResualt[key].vn && textResualt[key].result_date == datedropVal) {
+                                listVNData.push(textResualt[key].vn);
+                                subVNdata = textResualt[key].vn;
+                            }
+                            if (subCodedata != textResualt[key].group_lab && textResualt[key].result_date == datedropVal) {
+                                listCodeData.push(textResualt[key].group_lab);
+                                subCodedata = textResualt[key].group_lab;
+                            }
+                        });
+                        let uniqueChars = listCodeData.filter((element, index) => {
+                            return listCodeData.indexOf(element) === index;
+                        });
+                        renderSelector(listVNData, "#vnSector");
+                        renderSelector(uniqueChars, "#codeSector");
+                        var dropVal = $("#dateSector").val()
+                        var cdVal = $("#codeSector").val()
+                        document.getElementById('headerBlood').innerText = 'ผลเลือดประจำวันที่ ' + datedropVal;
+
+                        var run = 0;
+                        Object.keys(textResualt).forEach(key => {
+                            if (textResualt[key].result_date == dropVal && textResualt[key].group_lab == cdVal) {
+                                var color = 'black';
+                                if (textResualt[key].check_nomal == "H" || textResualt[key].check_nomal == "L") {
+                                    color = 'red';
+                                }
+
+                                if (run % 2 == 0) {
+                                    $('#Colum1').append(
+                                        `<div class="row" >
+                                <div class="col-3" style='text-align:start;font-size:28px;color:black '>${textResualt[key].result_name == undefined || textResualt[key].result_name == null ? '-' : textResualt[key].result_name}</div>
+                                <div class="col-3" style='text-align:center;font-size:28px ;color:${color};'>${textResualt[key].result == undefined || textResualt[key].result == null ? '-' : textResualt[key].result}</div>
+                                <div class="col-3" style='text-align:center;font-size:28px;color:black '>${textResualt[key].refference_range == undefined || textResualt[key].refference_range == null ? '-' : textResualt[key].refference_range}</div>
+                                <div class="col-3" style='text-align:start;font-size:28px;color:black '>${textResualt[key].unit_text == undefined || textResualt[key].unit_text == null ? '-' : textResualt[key].unit_text}</div>
+                            </div>`);
+                                }
+                                else {
+                                    $('#Colum1').append(
+                                        `<div class="row" style="background-color: #eae6e6;">
+                                <div class="col-3" style='text-align:start;font-size:28px;color:black '>${textResualt[key].result_name == undefined || textResualt[key].result_name == null ? '-' : textResualt[key].result_name}</div>
+                                <div class="col-3" style='text-align:center;font-size:28px ;color:${color};'>${textResualt[key].result == undefined || textResualt[key].result == null ? '-' : textResualt[key].result}</div>
+                                <div class="col-3" style='text-align:center;font-size:28px;color:black '>${textResualt[key].refference_range == undefined || textResualt[key].refference_range == null ? '-' : textResualt[key].refference_range}</div>
+                                <div class="col-3" style='text-align:start;font-size:28px;color:black '>${textResualt[key].unit_text == undefined || textResualt[key].unit_text == null ? '-' : textResualt[key].unit_text}</div>
+                            </div>`);
+                                }
+                                run++;
+
+
+                            }
+
+                        });
+                    }
+                    else {
+                        alert('ไม่มีข้อมูล ผลเลือด');
+                    }
+                    if (textResualt != null) {
+                        //Object.keys(textResualt).forEach(key => {
+                        //    document.getElementById(`resultText${key}`).innerText = ``;
+                        //    document.getElementById(`resultText${key}`).innerText = textResualt[key].result;
+
+                        //});
+                    }
+                    $('#event-modal-blood').modal('show');
+                }
+                else {
+                    alert("ไม่มีข้อมูล")
+                }
+            }
+        });
+    }
+    const getPatientBloodTest = async (id) => {
+        const oldRel = await makeRequest("GET", `/web-apps/Patient/GetBloodResult/${id}`)
+
+    }
+    function sortObjectByKeys(o) {
+        return Object.keys(o).sort().reduce((r, k) => (r[k] = o[k], r), {});
+    }
+    function getBloodB(hn) {
+        $.ajax({
+            type: "GET",
+            url: "/Doctor?handler=BloodResult",
+            data: { "hn": hn },
+            success: function (response) {
+                if (response.data != []) {
+                    $('#ShowDetail').html("");
+                    var textResualt = null;
+                    Object.keys(response).forEach(key => {
+                        textResualt = response[key]; // 👉️ "name", "country"
+                        //console.log(oldRel[key]); // 👉️ "Tom", "Chile"
+                    });
+                    var listDateData = [];
+                    var listResualtData = [];
+                    var listlabcode = [];
+                    var subdatedata = null;
+                    var subResualtData = null;
+                    var sublabcode = [];
+                    if (textResualt.length > 0) {
+                        dataTable = textResualt;
+                        Object.keys(textResualt).forEach(key => {
+                            if (subdatedata != textResualt[key].result_date) {
+                                listDateData.push(textResualt[key].result_date);
+                                subdatedata = textResualt[key].result_date;
+                            }
+                        });
+                        var subDate = 0
+                        var length = listDateData.length;
+                        if (listDateData.length >5) {
+                            length = 5
+                        }
+                        for (var i = 0; i < length; i++) {
+                            document.getElementById(`theader${i}`).innerHTML = listDateData[i];
+                            subDate = i;
+                        }
+
+                        var listDataColum1 = []
+                        var listDataColum2 = []
+                        var listDataColum3 = []
+                        var listDataColum4 = []
+                        var listDataColum5 = []
+                        Object.keys(textResualt).forEach(key => {
+                            if (textResualt[key].result_date == listDateData[0]) {
+                                listDataColum1.push(textResualt[key]);
+                            }
+                            else if (textResualt[key].result_date == listDateData[1]) {
+                                listDataColum2.push(textResualt[key]);
+                            }
+                            else if (textResualt[key].result_date == listDateData[2]) {
+                                listDataColum3.push(textResualt[key]);
+                            }
+                            else if (textResualt[key].result_date == listDateData[3]) {
+                                listDataColum4.push(textResualt[key]);
+                            }
+                            else if (textResualt[key].result_date == listDateData[4]) {
+                                listDataColum5.push(textResualt[key]);
+                            }
+                            if (sublabcode != textResualt[key].labcode_detial && textResualt[key].result_date == listDateData[0]) {
+                                listlabcode.push(textResualt[key].labcode_detial);
+                                sublabcode = textResualt[key].labcode_detial;
+                            } else if (sublabcode != textResualt[key].labcode_detial && textResualt[key].result_date == listDateData[1]) {
+                                listlabcode.push(textResualt[key].labcode_detial);
+                                sublabcode = textResualt[key].labcode_detial;
+                            } else if (sublabcode != textResualt[key].labcode_detial && textResualt[key].result_date == listDateData[2]) {
+                                listlabcode.push(textResualt[key].labcode_detial);
+                                sublabcode = textResualt[key].labcode_detial;
+                            } else if (sublabcode != textResualt[key].labcode_detial && textResualt[key].result_date == listDateData[3]) {
+                                listlabcode.push(textResualt[key].labcode_detial);
+                                sublabcode = textResualt[key].labcode_detial;
+                            } else if (sublabcode != textResualt[key].labcode_detial && textResualt[key].result_date == listDateData[4]) {
+                                listlabcode.push(textResualt[key].labcode_detial);
+                                sublabcode = textResualt[key].labcode_detial;
+                            }
+                        });
+                        let uniquelabCode = listlabcode.filter((element, index) => {
+                            return listlabcode.indexOf(element) === index;
+                        });
+                        uniquelabCode.sort();
+
+                        //Object.keys(textResualt).forEach(key => {
+                        //    if (subResualtData != textResualt[key].result_name && textResualt[key].result_date == listDateData[key] && uniquelabCode[key] == textResualt[key].labcode_detial) {
+                        //        listResualtData.push(textResualt[key].result_name);
+                        //        subResualtData = textResualt[key].result_name;
+                        //    }
+                        //});
+                        var listResultName = [];
+                        var subResultName = null;
+                        document.getElementById('headerBloodBetween').innerText = 'ผลเลือดเปรียบเทียบ วันที่  ' + listDateData[subDate] + ' ถึงวันที่ ' + listDateData[0];
+                        for (var i = 0; i <= uniquelabCode.length; i++) {
+                            Object.keys(textResualt).forEach(key => {
+                                if (textResualt[key].labcode_detial == uniquelabCode[i] && subResultName != textResualt[key].result_name) {
+                                    listResultName.push(textResualt[key].result_name);
+                                    subResultName = textResualt[key].result_name;
+                                }
+
+                            });
+
+                        }
+                        var run = 0;
+                        Object.keys(listResultName).forEach(key => {
+                            var dataCoum1 = '-';
+                            var dataCoumColor1 = 'black';
+                            var dataCoum2 = '-';
+                            var dataCoumColor2 = 'black';
+                            var dataCoum3 = '-';
+                            var dataCoumColor3 = 'black';
+                            var dataCoum4 = '-';
+                            var dataCoumColor4 = 'black';
+                            var dataCoum5 = '-';
+                            var dataCoumColor5 = 'black';
+                            Object.keys(listDataColum1).forEach(keys => {
+                                if (listDataColum1[keys].labcode_detial == uniquelabCode[key]) {
+                                    dataCoum1 = listDataColum1[keys].result;
+                                    if (listDataColum1[keys].check_nomal == "H" || listDataColum1[keys].check_nomal == "L") {
+                                        dataCoumColor1 = 'red';
+                                    }
+                                }
+                            });
+                            Object.keys(listDataColum2).forEach(keys => {
+                                if (listDataColum2[keys].labcode_detial == uniquelabCode[key]) {
+                                    dataCoum2 = listDataColum2[keys].result;
+                                    if (listDataColum2[keys].check_nomal == "H" || listDataColum2[keys].check_nomal == "L") {
+                                        dataCoumColor2 = 'red';
+                                    }
+                                }
+                            });
+                            Object.keys(listDataColum3).forEach(keys => {
+                                if (listDataColum3[keys].labcode_detial == uniquelabCode[key]) {
+                                    dataCoum3 = listDataColum3[keys].result;
+                                    if (listDataColum3[keys].check_nomal == "H" || listDataColum3[keys].check_nomal == "L") {
+                                        dataCoumColor3 = 'red';
+                                    }
+                                }
+                            });
+                            Object.keys(listDataColum4).forEach(keys => {
+                                if (listDataColum4[keys].labcode_detial == uniquelabCode[key]) {
+                                    dataCoum4 = listDataColum4[keys].result;
+                                    if (listDataColum4[keys].check_nomal == "H" || listDataColum4[keys].check_nomal == "L") {
+                                        dataCoumColor4 = 'red';
+                                    }
+                                }
+                            });
+                            Object.keys(listDataColum5).forEach(keys => {
+                                if (listDataColum5[keys].labcode_detial == uniquelabCode[key]) {
+                                    dataCoum5 = listDataColum5[keys].result;
+                                    if (listDataColum5[keys].check_nomal == "H" || listDataColum5[keys].check_nomal == "L") {
+                                        dataCoumColor5 = 'red';
+                                    }
+                                }
+                            });
+
+                            if (run % 2 == 0) {
+                                $('#ShowDetail').append(
+                                    `<div class="row" id="rowShow${run}">
+                                    <div class="col-2" style='text-align: center; font-size: 28px; color: black ;border:1px solid #eae6e6;' id="ColumBlood0">${listResultName[key]}</div>
+                                    <div class="col-2" style='text-align: center; font-size: 28px; color: ${dataCoumColor1}; border: 1px solid #eae6e6;' id="ColumBlood1">${dataCoum1}</div>
+                                    <div class="col-2" style='text-align: center; font-size: 28px; color: ${dataCoumColor2}; border: 1px solid #eae6e6;' id="ColumBlood2">${dataCoum2}</div>
+                                    <div class="col-2" style='text-align: center; font-size: 28px; color: ${dataCoumColor3}; border: 1px solid #eae6e6;' id="ColumBlood3">${dataCoum3}</div>
+                                    <div class="col-2" style='text-align: center; font-size: 28px; color: ${dataCoumColor4}; border: 1px solid #eae6e6;' id="ColumBlood4">${dataCoum4}</div>
+                                    <div class="col-2" style='text-align: center; font-size: 28px; color: ${dataCoumColor5}; border: 1px solid #eae6e6;' id="ColumBlood5">${dataCoum5}</div>
+                                </div>`
+                                );
+                            }
+                            else {
+                                $('#ShowDetail').append(
+                                    `<div class="row" id="rowShow${run}" style="background-color: #eae6e6;">
+                                    <div class="col-2" style='text-align: center; font-size: 28px; color: black ;border:1px solid #eae6e6;' id="ColumBlood0">${listResultName[key]}</div>
+                                    <div class="col-2" style='text-align: center; font-size: 28px; color: ${dataCoumColor1}; border: 1px solid #eae6e6;' id="ColumBlood1">${dataCoum1}</div>
+                                    <div class="col-2" style='text-align: center; font-size: 28px; color: ${dataCoumColor2}; border: 1px solid #eae6e6;' id="ColumBlood2">${dataCoum2}</div>
+                                    <div class="col-2" style='text-align: center; font-size: 28px; color: ${dataCoumColor3}; border: 1px solid #eae6e6;' id="ColumBlood3">${dataCoum3}</div>
+                                    <div class="col-2" style='text-align: center; font-size: 28px; color: ${dataCoumColor4}; border: 1px solid #eae6e6;' id="ColumBlood4">${dataCoum4}</div>
+                                    <div class="col-2" style='text-align: center; font-size: 28px; color: ${dataCoumColor5}; border: 1px solid #eae6e6;' id="ColumBlood5">${dataCoum5}</div>
+                                </div>`
+                                );
+                            }
+                            run++;
+
+
+                        });
+                    }
+                    else {
+                        alert('ไม่มีข้อมูล ผลเลือด');
+                    }
+                    if (textResualt != null) {
+                        //Object.keys(textResualt).forEach(key => {
+                        //    document.getElementById(`resultText${key}`).innerText = ``;
+                        //    document.getElementById(`resultText${key}`).innerText = textResualt[key].result;
+
+                        //});
+                    }
+                    $('#event-modal-blood-between').modal('show');
+                }
+                else {
+                    alert("ไม่มีข้อมูล")
+                }
+
+            }
+        });
+    }
+    const geBloodBetween = async (id) => {
+        const oldRel = await makeRequest("GET", `/web-apps/Patient/GetBloodResult/${id}`)
+
+    }
+
+    function datedropDown() {
+        var datedropVal = $("#dateSector").val()
+        $('#codeSector').empty();
+        $('#vnSector').empty();
+        var textResualt = dataTable;
+        var listVNData = [];
+        var listCodeData = [];
+        var subVNdata = null;
+        var subCodedata = null;
+        Object.keys(textResualt).forEach(key => {
+            if (subVNdata != textResualt[key].vn && textResualt[key].result_date == datedropVal) {
+                listVNData.push(textResualt[key].vn);
+                subVNdata = textResualt[key].vn;
+            }
+            if (subCodedata != textResualt[key].group_lab && textResualt[key].result_date == datedropVal) {
+                listCodeData.push(textResualt[key].group_lab);
+                subCodedata = textResualt[key].group_lab;
+            }
+        });
+        let uniqueChars = listCodeData.filter((element, index) => {
+            return listCodeData.indexOf(element) === index;
+        });
+        renderSelector(listVNData, "#vnSector");
+        renderSelector(uniqueChars, "#codeSector");
+        var cdVal = $("#codeSector").val()
+        $("#Colum1").html("");
+        document.getElementById('headerBlood').innerText = 'ผลเลือดประจำวันที่ ' + datedropVal;
+        var run = 0;
+        Object.keys(textResualt).forEach(key => {
+            if (textResualt[key].result_date == datedropVal && textResualt[key].group_lab == cdVal) {
+                var color = 'black';
+                if (textResualt[key].check_nomal == "H" || textResualt[key].check_nomal == "L") {
+                    color = 'red';
+                }
+                if (run % 2 == 0) {
+                    $('#Colum1').append(
+                        `<div class="row" >
+                                <div class="col-3" style='text-align:start;font-size:28px;color:black '>${textResualt[key].result_name == undefined || textResualt[key].result_name == null ? '-' : textResualt[key].result_name}</div>
+                                <div class="col-3" style='text-align:center;font-size:28px ;color:${color}'>${textResualt[key].result == undefined || textResualt[key].result == null ? '-' : textResualt[key].result}</div>
+                                <div class="col-3" style='text-align:center;font-size:28px;color:black '>${textResualt[key].refference_range == undefined || textResualt[key].refference_range == null ? '-' : textResualt[key].refference_range}</div>
+                                <div class="col-3" style='text-align:start;font-size:28px;color:black '>${textResualt[key].unit_text == undefined || textResualt[key].unit_text == null ? '-' : textResualt[key].unit_text}</div>
+                            </div>`);
+                }
+                else {
+                    $('#Colum1').append(
+                        `<div class="row" style="background-color: #eae6e6;">
+                                <div class="col-3" style='text-align:start;font-size:28px;color:black '>${textResualt[key].result_name == undefined || textResualt[key].result_name == null ? '-' : textResualt[key].result_name}</div>
+                                <div class="col-3" style='text-align:center;font-size:28px ;color:${color}'>${textResualt[key].result == undefined || textResualt[key].result == null ? '-' : textResualt[key].result}</div>
+                                <div class="col-3" style='text-align:center;font-size:28px;color:black '>${textResualt[key].refference_range == undefined || textResualt[key].refference_range == null ? '-' : textResualt[key].refference_range}</div>
+                                <div class="col-3" style='text-align:start;font-size:28px;color:black '>${textResualt[key].unit_text == undefined || textResualt[key].unit_text == null ? '-' : textResualt[key].unit_text}</div>
+                            </div>`);
+                }
+                run++;
+            }
+
+        });
+    }
+    function vndropDown() {
+        var vndropVal = $("#vnSector").val()
+        var datedropVal = $("#dateSector").val()
+        var cdVal = $("#codeSector").val()
+        $("#Colum1").html("");
+        var textResualt = dataTable;
+        var run = 0;
+        Object.keys(textResualt).forEach(key => {
+            if (textResualt[key].result_date == datedropVal && textResualt[key].vn == vndropVal && textResualt[key].group_lab == codedropVal) {
+                var color = 'black';
+                if (textResualt[key].check_nomal == "H" || textResualt[key].check_nomal == "L") {
+                    color = 'red';
+                }
+                if (run % 2 == 0) {
+                    $('#Colum1').append(
+                        `<div class="row" >
+                                <div class="col-3" style='text-align:start;font-size:28px;color:black '>${textResualt[key].result_name == undefined || textResualt[key].result_name == null ? '-' : textResualt[key].result_name}</div>
+                                <div class="col-3" style='text-align:center;font-size:28px ;color:${color}'>${textResualt[key].result == undefined || textResualt[key].result == null ? '-' : textResualt[key].result}</div>
+                                <div class="col-3" style='text-align:center;font-size:28px;color:black '>${textResualt[key].refference_range == undefined || textResualt[key].refference_range == null ? '-' : textResualt[key].refference_range}</div>
+                                <div class="col-3" style='text-align:start;font-size:28px;color:black '>${textResualt[key].unit_text == undefined || textResualt[key].unit_text == null ? '-' : textResualt[key].unit_text}</div>
+                            </div>`);
+                }
+                else {
+                    $('#Colum1').append(
+                        `<div class="row" style="background-color: #eae6e6;">
+                                <div class="col-3" style='text-align:start;font-size:28px;color:black '>${textResualt[key].result_name == undefined || textResualt[key].result_name == null ? '-' : textResualt[key].result_name}</div>
+                                <div class="col-3" style='text-align:center;font-size:28px ;color:${color}'>${textResualt[key].result == undefined || textResualt[key].result == null ? '-' : textResualt[key].result}</div>
+                                <div class="col-3" style='text-align:center;font-size:28px;color:black '>${textResualt[key].refference_range == undefined || textResualt[key].refference_range == null ? '-' : textResualt[key].refference_range}</div>
+                                <div class="col-3" style='text-align:start;font-size:28px;color:black '>${textResualt[key].unit_text == undefined || textResualt[key].unit_text == null ? '-' : textResualt[key].unit_text}</div>
+                            </div>`);
+                }
+                run++;
+            }
+
+        });
+    }
+    function codedropDown() {
+        var codedropVal = $("#codeSector").val()
+        var datedropVal = $("#dateSector").val()
+        $("#Colum1").html("");
+        var textResualt = dataTable;
+        var run = 0;
+        Object.keys(textResualt).forEach(key => {
+            if (textResualt[key].result_date == datedropVal && textResualt[key].group_lab == codedropVal) {
+                var color = 'black';
+                if (textResualt[key].check_nomal == "H" || textResualt[key].check_nomal == "L") {
+                    color = 'red';
+                }
+                if (run % 2 == 0) {
+                    $('#Colum1').append(
+                        `<div class="row" >
+                                <div class="col-3" style='text-align:start;font-size:28px;color:black '>${textResualt[key].result_name == undefined || textResualt[key].result_name == null ? '-' : textResualt[key].result_name}</div>
+                                <div class="col-3" style='text-align:center;font-size:28px ;color:${color}'>${textResualt[key].result == undefined || textResualt[key].result == null ? '-' : textResualt[key].result}</div>
+                                <div class="col-3" style='text-align:center;font-size:28px;color:black '>${textResualt[key].refference_range == undefined || textResualt[key].refference_range == null ? '-' : textResualt[key].refference_range}</div>
+                                <div class="col-3" style='text-align:start;font-size:28px;color:black '>${textResualt[key].unit_text == undefined || textResualt[key].unit_text == null ? '-' : textResualt[key].unit_text}</div>
+                            </div>`);
+                }
+                else {
+                    $('#Colum1').append(
+                        `<div class="row" style="background-color: #eae6e6;">
+                                <div class="col-3" style='text-align:start;font-size:28px;color:black '>${textResualt[key].result_name == undefined || textResualt[key].result_name == null ? '-' : textResualt[key].result_name}</div>
+                                <div class="col-3" style='text-align:center;font-size:28px ;color:${color}'>${textResualt[key].result == undefined || textResualt[key].result == null ? '-' : textResualt[key].result}</div>
+                                <div class="col-3" style='text-align:center;font-size:28px;color:black '>${textResualt[key].refference_range == undefined || textResualt[key].refference_range == null ? '-' : textResualt[key].refference_range}</div>
+                                <div class="col-3" style='text-align:start;font-size:28px;color:black '>${textResualt[key].unit_text == undefined || textResualt[key].unit_text == null ? '-' : textResualt[key].unit_text}</div>
+                            </div>`);
+                }
+                run++;
+            }
+
+        });
+    }
+    function getPatientInfo(memberId) {
+        $.ajax({
+            type: "GET",
+            url: "/Doctor?handler=PatientInfo",
+            data: { "id": memberId },
+            success: function (response) {
+                var color = 'black';
+                if (response.count > 0) {
+                    color = 'red';
+                }
+                var dis = ''
+                var colorB = 'cornflowerblue';
+                if (response.gender == 0) {
+                    dis = 'disabled';
+                    colorB = 'lightgray'
+                }
+                var display = "none"
+                if (@ViewData["roleId"] === 6) {
+                    display = "block"
+                }
+                var sum28Q = response.questionGHQ28Group1 + response.questionGHQ28Group2 + response.questionGHQ28Group3 + response.questionGHQ28Group4;
+                var colorC = "black"
+                var textST5 = "ไม่มีปัญหาสุขภาพทางจิต";
+                if (sum28Q > 6 ) {
+                    textST5 = "มีปัญหาสุขภาพทางจิต";
+                    colorC = 'red';
+                }
+               
+                var color9Q = "black"
+                var text9Q = "ยังไม่พบความเสี่ยงต่อการป่วยด้วยโรคซึมเศร้าในขณะนี้";
+                if (response.question9q > 0 && response.question9q <= 6) {
+                    text9Q = "มีความเสี่ยงต่อการป่วยด้วยโรคซึมเศร้าในระดับน้อยมาก ";
+                } else if (response.question9q > 6 && response.question9q <= 12) {
+                    text9Q = "มีความเสี่ยงต่อการป่วยด้วยโรคซึมเศร้าในระดับน้อย";
+                    color9Q = "red"
+                } else if (response.question9q > 12 && response.question9q <= 18) {
+                    text9Q = "มีความเสี่ยงต่อการป่วยด้วยโรคซึมเศร้าในระดับปานกลาง";
+                    color9Q = "red"
+                } else if (response.question9q > 19 ) {
+                    text9Q = "มีความเสี่ยงต่อการป่วยด้วยโรคซึมเศร้าในระดับรุนแรง";
+                    color9Q = "red"
+                }
+                var color8Q = "black"
+                var text8Q = 'แนวโน้มในการฆ่าตัวตาย ปกติ'
+                if (response.question8q > 0 && response.question8q <= 8) {
+                    text8Q = 'แนวโน้มในการฆ่าตัวตาย น้อย'
+                    color8Q = "red"
+                } else if (response.question8q > 8 && response.question8q <= 16) {
+                    text8Q = 'แนวโน้มในการฆ่าตัวตาย ปานกลาง'
+                    color8Q = "red"
+                }
+                else if (response.question8q > 16) {
+                    text8Q = 'แนวโน้มในการฆ่าตัวตาย รุนแรง'
+                    color8Q = "red"
+                }
+                $('#patient_profile').html('');
+                $('#patient_profile').append(
+                    `<div class="profile">
+                        <div class="profile-image">
+                                <img class="img-profile-set" src=${response.imageBase64} alt="image.jpg"/>
+                            </div>
+                            <div class="profile-name">
+                                <input id="memberId" name="memberId" readonly="readonly" hidden="hidden" />
+                                <p id="patientname-show"> ${response.fullName ?? ''}</p>
+                            </div>
+                        </div>
+                        <div class="patient-detail-profile">
+                            <div class="d-flex">
+                                <p>เพศ</p>
+                                <p class="pl-3">${response.gender == 0 ? 'ชาย' : 'หญิง'} อายุ ${response.age ?? 0} ปี</p>
+                            </div>
+                            <div class="d-flex">
+                                <p>วัน/เดือน/ปีเกิด</p>
+                                <p class="pl-3">${response.birthDateStr == undefined || response.birthDateStr == null ? '-' : response.birthDateStr}</p>
+                            </div>
+                            <div class="d-flex">
+                                <p>เลขประจำตัวประชาชน</p>
+                                <p class="pl-3" id="memberIdCard">${response.idCard == undefined || response.idCard == null ? '-' : response.idCard}</p>
+                            </div>
+                            <div class="d-flex">
+                                <p>รหัส HN</p>
+                                <p class="pl-3" id="memberHn">${response.hn == undefined || response.hn == null ? '-' : response.hn}</p>
+                            </div>
+                            <div class="d-flex">
+                                <p>สิทธิการรักษา</p>
+                                <p class="pl-3"> ${response.treatmentName == undefined || response.treatmentName == null ? '-' : response.treatmentName}</p>
+                            </div>
+                            <div class="d-flex">
+                                <p>หมายเลขโทรศัพท์เคลื่อนที่</p>
+                                <p class="pl-3">${response.phoneNo == undefined || response.phoneNo == null ? '-' : response.phoneNo}</p>
+                            </div>
+                            <div class="d-flex">
+                                <p>หน่วยงานต้นสังกัด</p>
+                                <p class="pl-3">${response.agencyText == undefined || response.agencyText == null ? '-' : response.agencyText}</p>
+                            </div>
+                            <div class="d-flex">
+                                <p>ที่ทำงาน</p>
+                                <p class="pl-3">${response.workPlaceName == undefined || response.workPlaceName == null ? '-' : response.workPlaceName}</p>
+                            </div>
+                            <div class="d-flex">
+                                <p>ประเภท</p>
+                                <p class="pl-3">${response.jobTypeName == undefined || response.jobTypeName == null ? '-' : response.jobTypeName}</p>
+                            </div>
+                            <div class="d-flex">
+                                <lebel style="color:${color}">มีความเสี่ยงสุขภาพจำนวน </lebel>
+                                <lebel class="pl-3" style="color:${color}">${response.count == undefined || response.count == null ? '-' : response.count} ข้อ</lebel>
+                            </div>
+                            <div class="d-flex">
+                                <lebel>โรคประจำตัว </lebel>
+                                <lebel class="pl-3" id="diagestor"> ${response.question40 == undefined || response.question40 == null ? '-' : response.question40}</lebel>
+                            </div>
+                            <div style="display:${display}">
+                                        <lebel>GHQ 28 กลุ่มที่ 1 อาการทางกาย</lebel><br />
+                                        <div class="pl-3" id="281qCheck" style="color: ${colorC};">${response.questionGHQ28Group1 == undefined || response.questionGHQ28Group1 == null ? '-' : response.questionGHQ28Group1} คะแนน</div>
+                                    </div>
+                                    <div  style="display:${display}">
+                                        <lebel>GHQ 28 กลุ่มที่ 2 อาการวิตกกังวลและการนอนไม่หลับ</lebel><br />
+                                        <div class="pl-3" id="282qCheck" style="color: ${colorC};">${response.questionGHQ28Group2 == undefined || response.questionGHQ28Group2 == null ? '-' : response.questionGHQ28Group2} คะแนน</div>
+                                    </div>
+                                    <div style="display:${display}">
+                                        <lebel>GHQ 28 กลุ่มที่ 3 ความบกพร่องทางสังคม</lebel><br />
+                                        <div class="pl-3" id="283qCheck" style="color: ${colorC};">${response.questionGHQ28Group3 == undefined || response.questionGHQ28Group3 == null ? '-' : response.questionGHQ28Group3} คะแนน</div>
+                                    </div>
+                                    <div style="display:${display}">
+                                        <lebel>GHQ 28 กลุ่มที่ 4 อาการซึมเศร้าที่รุนแรง</lebel><br />
+                                        <div class="pl-3" id="284qCheck" style="color: ${colorC};">${response.questionGHQ28Group4 == undefined || response.questionGHQ28Group4 == null ? '-' : response.questionGHQ28Group4} คะแนน</div>
+                                    </div>
+                            <div style="display:${display}">
+                                <lebel>GHQ-28 รวม</lebel>
+                                <lebel class="pl-3" id="2qCheck" style="color:${colorC}">${sum28Q == undefined || sum28Q == null ? '-' : sum28Q} คะแนน ${textST5}</lebel>
+                            </div>
+                            <div id="9qCheckDiv" style="display:${display}">
+                                <lebel>คะแนน 9Q </lebel>
+                                <lebel class="pl-3" id="9qCheck" style="color:${color9Q}">${response.question9q == undefined || response.question9q == null ? '-' : response.question9q} คะแนน ${text9Q}</lebel>
+                            </div>
+                            <div id="8qCheckDiv" style="display:${display}">
+                                        <lebel>คะแนน 8Q </lebel>
+                                        <div class="pl-3" id="8qCheck" style="color: ${color8Q};"> ${response.question8q == undefined || response.question8q == null ? '-' : response.question8q} คะแนน ${text8Q}</div>
+                                    </div>
+                            </br>
+                            <div class="d-flex">
+                                <button type="button" id="XrayShow" onclick="getXTest(${response.idCard == undefined || response.idCard == null ? '-' : response.idCard})" style="color:white;font-size: 14px;">ผลXray</button>
+                                <button type="button" id="BloodShow" onclick="getBlood('${response.hn == undefined || response.hn == null ? '-' : response.hn}')" style="color:white;font-size: 14px;margin-left:10px">ผลเลือด</button>
+                            </div>
+                            </br>
+                            <div class="d-flex">
+                                <button type="button" id="BloodOpp" onclick="getBloodB('${response.hn == undefined || response.hn == null ? '-' : response.hn}')" style="color:white;font-size: 14px;">ผลเลือดเปรียบเทียบ</button>
+                                <button type="button" id="PCancer" style="color:white;font-size: 14px;margin-left:10px;background-color: ${colorB}" onclick="nareeClick()"  ${dis}>บันทึกการตรวจนรีเวช </button>
+                            </div>
+                        </div>
+                    </div >`);
+                document.getElementById("btnShowPrep").onclick = function () { getPrep(response.hn == undefined || response.hn == null ? '-' : response.hn) };
+                memberIdCard = response.idCard;
+                memberHn = response.hn;
+            },
+            error: function (response) {
+                $('#patient_profile').html('');
+            }
+        });
+    };
+
+    $('.clear-input').on('click', function () {
+        $('#docpatient-profile').hide();
+        $('#patient-profile-id').html('');
+        $('#search-input-id').val('');
+    })
+
+    function getPatientPhysicalDetail() {
+        $.ajax({
+            type: "GET",
+            url: "/Doctor?handler=PatientPhysical",
+            data: { "memberId": memberId },
+            success: function (response) {
+                $('#cardSpaceId').html('');
+                var listDam = [1, 2, 7, 3, 5,4,6]
+                resultr = []
+                listDam.forEach(function (key) {
+                    var found = false;
+                    response = response.filter(function (item) {
+                        if (item.id == key) {
+                            resultr.push(item);
+                            found = true;
+                            return false;
+                        } else
+                            return true;
+                    })
+                })
+                var height = 0
+                var weight = 0
+                resultr.forEach((data, i) => {
+                    if (data.id == 1) {
+                        weight = parseInt(data.value);
+                    }
+                    if (data.id == 2) {
+                        height = parseInt(data.value);
+                    }
+                    if (data.id == 7) {
+                        var bmi = weight / Math.pow((height / 100),2)
+                        $('#cardSpaceId').append(
+                            `<div class="card-space">
+                            <div class="detail-card-wrapper" style="background-color:${data.bgColor};">
+                                <div class="detail-card">
+                                    <div class="title-detail-card">
+                                        <p>${data.descriptTh}</p>
+                                    </div>
+                                    <div class="input-detail-card d-flex">
+                                        <h5 class="font-weight-bold pr-3"></h5>
+                                        <p>${data.unitTh}</p>
+                                    </div>
+                                </div>
+                                <div>
+                                    <h1 style="text-align: center;">${data.value}</h1>
+                                </div>
+                                <div class="image-card">
+                                    <img src="${data.image}" style="height:30%" />
+                                </div>
+                            </div>
+                        </div>`);
+                        $('#cardSpaceId').append(
+                            `<div class="card-space">
+                            <div class="detail-card-wrapper" style="background-color:${data.bgColor};">
+                                <div class="detail-card">
+                                    <div class="title-detail-card">
+                                        <p>ดัชนีมวลกาย</p>
+                                    </div>
+                                    <div class="input-detail-card d-flex">
+                                        <h5 class="font-weight-bold pr-3"></h5>
+                                        <p></p>
+                                    </div>
+                                </div>
+                                <div>
+                                    <h1 style="text-align: center;">${bmi.toFixed(2)}</h1>
+                                </div>
+                                <div class="image-card">
+                                    <img src="/assets/images/BMI.png" style="height:30%" />
+                                </div>
+                            </div>
+                        </div>`);
+                    }
+                    else if (data.id == 3) {
+                        $('#cardSpaceId').append(
+                            `<div class="card-space">
+                            <div class="detail-card-wrapper" style="background-color:${data.bgColor};">
+                                <div class="detail-card">
+                                    <div class="title-detail-card">
+                                        <p>${data.descriptTh}</p>
+                                    </div>
+                                    <div class="input-detail-card d-flex">
+                                        <h5 class="font-weight-bold pr-3"></h5>
+                                        <p>${data.unitTh}</p>
+                                    </div>
+                                </div>
+                                <div>
+                                    <h1 style="text-align: center;;margin-top:10px">${data.value}</h1>
+                                </div>
+                                <div class="detail-card" id="subPress">
+                                </div>
+                                <div id="PressValue">
+                                </div>
+                            </div>
+                        </div>`);
+                    }
+                    else if (data.id == 4) {
+                        $('#subPress').append(
+                            `<div class="title-detail-card">
+                                        <p>${data.descriptTh}</p>
+                                    </div>
+                                    <div class="input-detail-card d-flex">
+                                        <p>${data.unitTh}</p>
+                                    </div>`);
+                        $('#PressValue').append(
+                            `<h1 style="text-align: center;margin-top:10px">${data.value}</h1>`);
+                    }
+                    else if (data.id == 5) {
+                        $('#cardSpaceId').append(
+                            `<div class="card-space">
+                            <div class="detail-card-wrapper" style="background-color:${data.bgColor};">
+                                <div class="detail-card">
+                                    <div class="title-detail-card">
+                                        <p>${data.descriptTh}</p>
+                                    </div>
+                                    <div class="input-detail-card d-flex">
+                                        <h5 class="font-weight-bold pr-3"></h5>
+                                        <p>${data.unitTh}</p>
+                                    </div>
+                                </div>
+                                <div>
+                                    <h1 style="text-align: center;margin-top:10px">${data.value}</h1>
+                                </div>
+                                <div class="detail-card" id="subHeart">
+                                </div>
+                                <div id="HeartValue">
+                                </div>
+                            </div>
+                        </div>`);
+                    }
+                    else if (data.id == 6) {
+                        $('#subHeart').append(
+                            `<div class="title-detail-card">
+                                        <p>${data.descriptTh}</p>
+                                    </div>
+                                    <div class="input-detail-card d-flex">
+                                        <p>${data.unitTh}</p>
+                                    </div>`);
+                        $('#HeartValue').append(
+                            `<h1 style="text-align: center;margin-top:10px">${data.value}</h1>`);
+                    }
+                    else {
+                        $('#cardSpaceId').append(
+                            `<div class="card-space">
+                            <div class="detail-card-wrapper" style="background-color:${data.bgColor};">
+                                <div class="detail-card">
+                                    <div class="title-detail-card">
+                                        <p>${data.descriptTh}</p>
+                                    </div>
+                                    <div class="input-detail-card d-flex">
+                                        <h5 class="font-weight-bold pr-3"></h5>
+                                        <p>${data.unitTh}</p>
+                                    </div>
+                                </div>
+                                <div>
+                                    <h1 style="text-align: center;">${data.value}</h1>
+                                </div>
+                                <div class="image-card">
+                                    <img src="${data.image}" style="height:30%" />
+                                </div>
+                            </div>
+                        </div>`);
+                    }
+
+                });
+            }
+        });
+
+    }
+
+    function onSave(role) {
+        if (role == 'doctor') {
+
+            var chk = $("#tab_doctor input:checked").val();
+            var isBcc = true;
+            var detail = $("#tab_doctor #bodyText").val();
+            var subisInsideCheck = $("input[name=insideCheck]:checked").val();
+            var isInsideCheck = true;
+            if (subisInsideCheck != 0) {
+                isInsideCheck = false;
+            }
+            var text = $('#insideText').val();
+            var subisPapSmearCheck = $("input[name=pcancerCheck]:checked").val();
+            var isPapSmearCheck = true;
+            if (subisPapSmearCheck != 0) {
+                isPapSmearCheck = false;
+            }
+            if (chk != null) {
+                var data = {
+                    'memberId': parseInt(memberId),
+                    'doctorId': parseInt($('#userId').val()),
+                    'isResult': parseInt(chk),
+                    "isBcc": isBcc,
+                    'detail': detail,
+                    "isInsideCheck": isInsideCheck,
+                    "insideDetail": text,
+                    "isPapSmearCheck": isPapSmearCheck
+                };
+
+                $.ajax({
+                    type: 'POST',
+                    url: '/Doctor/Index?handler=Doctor',
+                    headers: {
+                        RequestVerificationToken:
+                            $('input:hidden[name="__RequestVerificationToken"]').val()
+                    },
+                    contentType: 'application/json; charset=utf-8',
+                    dataType: 'json',
+                    data: JSON.stringify(data),
+                    success: function (response) {
+                        if (response === 'success') {
+                            CheckDocBfSave = -1;
+                            CheckDocBoobBfSvae = 2;
+                            checkDocDetail = detail;
+                            $('#event-modal-nareevate').modal('hide');
+                            $('#event-modal-save').modal('show');
+                            /*                        window.location.reload();*/
+                        } else {
+                            alert("เกิดข้อผิดพลาด บันทึกไม่สำเร็จ");
+                        }
+                    }
+                });
+            }
+            else {
+                $('#event-modal-alert').modal('show');
+            }
+
+
+        } else if (role == 'phych') {
+            var detail = $("#tab_pys #phychText").val();
+            var data = {
+                'memberId': parseInt(memberId),
+                'doctorId': parseInt($('#userId').val()),
+                'detail': detail
+            };
+            $.ajax({
+                type: 'POST',
+                url: '/Doctor/Index?handler=Phych',
+                headers: {
+                    RequestVerificationToken:
+                        $('input:hidden[name="__RequestVerificationToken"]').val()
+                },
+                contentType: 'application/json; charset=utf-8',
+                dataType: 'json',
+                data: JSON.stringify(data),
+                success: function (response) {
+                    if (response === 'success') {
+                        $('#event-modal-nareevate').modal('hide');
+                        $('#event-modal-save').modal('show');
+                        /*                        window.location.reload();*/
+                    } else {
+                        alert("เกิดข้อผิดพลาด บันทึกไม่สำเร็จ");
+                    }
+                }
+            });
+        }
+        else {
+            var level = $("#tab_dentist input:checked").val();
+            var detail = $('#tab_dentist #mouthText').val();
+            var oralid = [];
+            const aBtn = document.getElementById('mouthA');
+            const BBtn = document.getElementById('mouthB');
+            const DBtn = document.getElementById('mouthD');
+            const EBtn = document.getElementById('mouthE');
+            const FBtn = document.getElementById('mouthF');
+            const GBtn = document.getElementById('mouthG');
+            const IBtn = document.getElementById('mouthI');
+            const JBtn = document.getElementById('mouthJ');
+            const KBtn = document.getElementById('mouthK');
+            const LBtn = document.getElementById('mouthL');
+            const MBtn = document.getElementById('mouthM');
+            const CBtn = document.getElementById('mouthC');
+            const HBtn = document.getElementById('mouthH');
+            const NBtn = document.getElementById('mouthN');
+            if (aBtn.checked) {
+                const value = aBtn.value;
+                console.log(value); // This will output "6"
+            }
+            if (aBtn.checked == true) {
+                oralid.push(parseInt(1))
+            }
+            if (BBtn.checked == true) {
+                oralid.push(parseInt(2))
+            }
+            if (DBtn.checked == true) {
+                oralid.push(parseInt(3))
+            }
+            if (EBtn.checked == true) {
+                oralid.push(parseInt(4))
+            }
+            if (FBtn.checked == true) {
+                oralid.push(parseInt(5))
+            }
+            if (GBtn.checked == true) {
+                oralid.push(parseInt(6))
+            }
+            if (IBtn.checked == true) {
+                oralid.push(parseInt(7))
+            }
+            if (JBtn.checked == true) {
+                oralid.push(parseInt(8))
+            }
+            if (KBtn.checked == true) {
+                oralid.push(parseInt(9))
+            }
+            if (LBtn.checked == true) {
+                oralid.push(parseInt(10))
+            }
+            if (MBtn.checked == true) {
+                oralid.push(parseInt(11))
+            }
+            if (CBtn.checked == true) {
+                oralid.push(parseInt(12))
+            }
+            if (HBtn.checked == true) {
+                oralid.push(parseInt(13))
+            }
+            if (NBtn.checked == true) {
+                oralid.push(parseInt(14))
+            }
+            if (level != null) {
+                var data = {
+                    'memberId': parseInt(memberId),
+                    'doctorId': parseInt($('#userId').val()),
+                    'level': parseInt(level),
+                    'detail': detail,
+                    "oralID": oralid
+                };
+
+                $.ajax({
+                    type: 'POST',
+                    url: '/Doctor/Index?handler=Dentist',
+                    headers: {
+                        RequestVerificationToken:
+                            $('input:hidden[name="__RequestVerificationToken"]').val()
+                    },
+                    contentType: 'application/json; charset=utf-8',
+                    dataType: 'json',
+                    data: JSON.stringify(data),
+                    success: function (response) {
+                        if (response === 'success') {
+                            CheckDenBfSave = -1;
+                            checkDenDetail = detail;
+                            $('#event-modal-save').modal('show');
+                            /* window.location.reload();*/
+                        } else {
+                            alert("เกิดข้อผิดพลาด บันทึกไม่สำเร็จ");
+                        }
+                    }
+                });
+            }
+            else {
+                $('#event-modal-alert').modal('show');
+            }
+        }
+    }
+    let CheckDocBfSave = -1;
+    let CheckDocBoobBfSvae = 2;
+    let CheckDenBfSave = -1;
+    let CheckDenAfSave = 0;
+    let MaxDen = 0;
+    let CheckArray = []
+    function DoctorCheckChange(value) {
+        CheckDocBfSave = value;
+    }
+    function DoctorBCheckChange(value) {
+        CheckDocBoobBfSvae = value;
+    }
+    $("#mouthA").on('change', function() {
+        if ($(this).is(':checked')) {
+            $(this).attr('value', 'true');
+            CheckDenAfSave = 1;
+            CheckArray.push(1)
+            let maxValue = Math.max(...CheckArray);
+            switch (maxValue) {
+                case 2:
+                    $('#mouth2').prop('checked', true);
+                    break;
+                case 3:
+                    $('#mouth2').prop('checked', true);
+                    break;
+                case 4:
+                    $('#mouth3').prop('checked', true);
+                    break;
+                case 5:
+                    $('#mouth3').prop('checked', true);
+                    break;
+                case 6:
+                    $('#mouth3').prop('checked', true);
+                    break;
+                case 7:
+                    $('#mouth3').prop('checked', true);
+                    break;
+                case 8:
+                    $('#mouth3').prop('checked', true);
+                    break;
+                case 9:
+                    $('#mouth4').prop('checked', true);
+                    break;
+                case 10:
+                    $('#mouth4').prop('checked', true);
+                    break;
+                case 11:
+                    $('#mouth4').prop('checked', true);
+                    break;
+                case 12:
+                    $('#mouth4').prop('checked', true);
+                    break;
+                case 13:
+                    $('#mouth4').prop('checked', true);
+                    break;
+                case 14:
+                    $('#mouth4').prop('checked', true);
+                    break;
+                default:
+                    $('#mouth1').prop('checked', true);
+                    break;
+            }
+        }
+        else {
+            $(this).attr('value', 'false');
+            let elementToDelete = 1;
+
+            let index = CheckArray.indexOf(elementToDelete);
+
+            if (index !== -1) {
+                CheckArray.splice(index, 1);
+            }
+            let maxValue = Math.max(...CheckArray);
+            switch (maxValue) {
+                case 2:
+                    $('#mouth2').prop('checked', true);
+                    break;
+                case 3:
+                    $('#mouth2').prop('checked', true);
+                    break;
+                case 4:
+                    $('#mouth3').prop('checked', true);
+                    break;
+                case 5:
+                    $('#mouth3').prop('checked', true);
+                    break;
+                case 6:
+                    $('#mouth3').prop('checked', true);
+                    break;
+                case 7:
+                    $('#mouth3').prop('checked', true);
+                    break;
+                case 8:
+                    $('#mouth3').prop('checked', true);
+                    break;
+                case 9:
+                    $('#mouth4').prop('checked', true);
+                    break;
+                case 10:
+                    $('#mouth4').prop('checked', true);
+                    break;
+                case 11:
+                    $('#mouth4').prop('checked', true);
+                    break;
+                case 12:
+                    $('#mouth4').prop('checked', true);
+                    break;
+                case 13:
+                    $('#mouth4').prop('checked', true);
+                    break;
+                case 14:
+                    $('#mouth4').prop('checked', true);
+                    break;
+                default:
+                    $('#mouth1').prop('checked', true);
+                    break;
+            }
+        }
+      
+    });
+    $("#mouthB").on('change', function() {
+      if ($(this).is(':checked')) {
+        $(this).attr('value', 'true');
+          CheckDenAfSave = 2;
+          CheckArray.push(2)
+          let maxValue = Math.max(...CheckArray);
+          switch (maxValue) {
+                case 2:
+                    $('#mouth2').prop('checked', true);
+                    break;
+                case 3:
+                    $('#mouth2').prop('checked', true);
+                    break;
+                case 4:
+                    $('#mouth3').prop('checked', true);
+                    break;
+                case 5:
+                    $('#mouth3').prop('checked', true);
+                    break;
+                case 6:
+                    $('#mouth3').prop('checked', true);
+                    break;
+                case 7:
+                    $('#mouth3').prop('checked', true);
+                    break;
+                case 8:
+                    $('#mouth3').prop('checked', true);
+                    break;
+                case 9:
+                    $('#mouth4').prop('checked', true);
+                    break;
+                case 10:
+                    $('#mouth4').prop('checked', true);
+                    break;
+                case 11:
+                    $('#mouth4').prop('checked', true);
+                    break;
+                case 12:
+                    $('#mouth4').prop('checked', true);
+                    break;
+                case 13:
+                    $('#mouth4').prop('checked', true);
+                    break;
+                case 14:
+                    $('#mouth4').prop('checked', true);
+                    break;
+                default:
+                    $('#mouth1').prop('checked', true);
+                    break;
+            }
+      } else {
+        $(this).attr('value', 'false');
+        let elementToDelete = 2;
+
+        let index = CheckArray.indexOf(elementToDelete);
+
+        if (index !== -1) {
+          CheckArray.splice(index, 1);
+        }
+        let maxValue = Math.max(...CheckArray);
+          switch (maxValue) {
+                case 2:
+                    $('#mouth2').prop('checked', true);
+                    break;
+                case 3:
+                    $('#mouth2').prop('checked', true);
+                    break;
+                case 4:
+                    $('#mouth3').prop('checked', true);
+                    break;
+                case 5:
+                    $('#mouth3').prop('checked', true);
+                    break;
+                case 6:
+                    $('#mouth3').prop('checked', true);
+                    break;
+                case 7:
+                    $('#mouth3').prop('checked', true);
+                    break;
+                case 8:
+                    $('#mouth3').prop('checked', true);
+                    break;
+                case 9:
+                    $('#mouth4').prop('checked', true);
+                    break;
+                case 10:
+                    $('#mouth4').prop('checked', true);
+                    break;
+                case 11:
+                    $('#mouth4').prop('checked', true);
+                    break;
+                case 12:
+                    $('#mouth4').prop('checked', true);
+                    break;
+                case 13:
+                    $('#mouth4').prop('checked', true);
+                    break;
+                case 14:
+                    $('#mouth4').prop('checked', true);
+                    break;
+                default:
+                    $('#mouth1').prop('checked', true);
+                    break;
+            }
+      }
+      
+    });
+    $("#mouthC").on('change', function() {
+      if ($(this).is(':checked')) {
+        $(this).attr('value', 'true');
+          CheckDenAfSave = 3;
+          CheckArray.push(3)
+          let maxValue = Math.max(...CheckArray);
+          switch (maxValue) {
+                case 2:
+                    $('#mouth2').prop('checked', true);
+                    break;
+                case 3:
+                    $('#mouth2').prop('checked', true);
+                    break;
+                case 4:
+                    $('#mouth3').prop('checked', true);
+                    break;
+                case 5:
+                    $('#mouth3').prop('checked', true);
+                    break;
+                case 6:
+                    $('#mouth3').prop('checked', true);
+                    break;
+                case 7:
+                    $('#mouth3').prop('checked', true);
+                    break;
+                case 8:
+                    $('#mouth3').prop('checked', true);
+                    break;
+                case 9:
+                    $('#mouth4').prop('checked', true);
+                    break;
+                case 10:
+                    $('#mouth4').prop('checked', true);
+                    break;
+                case 11:
+                    $('#mouth4').prop('checked', true);
+                    break;
+                case 12:
+                    $('#mouth4').prop('checked', true);
+                    break;
+                case 13:
+                    $('#mouth4').prop('checked', true);
+                    break;
+                case 14:
+                    $('#mouth4').prop('checked', true);
+                    break;
+                default:
+                    $('#mouth1').prop('checked', true);
+                    break;
+            }
+      } else {
+        $(this).attr('value', 'false');
+        let elementToDelete = 3;
+
+        let index = CheckArray.indexOf(elementToDelete);
+
+        if (index !== -1) {
+          CheckArray.splice(index, 1);
+        }
+        let maxValue = Math.max(...CheckArray);
+          switch (maxValue) {
+                case 2:
+                    $('#mouth2').prop('checked', true);
+                    break;
+                case 3:
+                    $('#mouth2').prop('checked', true);
+                    break;
+                case 4:
+                    $('#mouth3').prop('checked', true);
+                    break;
+                case 5:
+                    $('#mouth3').prop('checked', true);
+                    break;
+                case 6:
+                    $('#mouth3').prop('checked', true);
+                    break;
+                case 7:
+                    $('#mouth3').prop('checked', true);
+                    break;
+                case 8:
+                    $('#mouth3').prop('checked', true);
+                    break;
+                case 9:
+                    $('#mouth4').prop('checked', true);
+                    break;
+                case 10:
+                    $('#mouth4').prop('checked', true);
+                    break;
+                case 11:
+                    $('#mouth4').prop('checked', true);
+                    break;
+                case 12:
+                    $('#mouth4').prop('checked', true);
+                    break;
+                case 13:
+                    $('#mouth4').prop('checked', true);
+                    break;
+                case 14:
+                    $('#mouth4').prop('checked', true);
+                    break;
+                default:
+                    $('#mouth1').prop('checked', true);
+                    break;
+            }
+      }
+      
+    });
+    $("#mouthD").on('change', function() {
+      if ($(this).is(':checked')) {
+        $(this).attr('value', 'true');
+          CheckDenAfSave = 4;
+          CheckArray.push(4)
+          let maxValue = Math.max(...CheckArray);
+          switch (maxValue) {
+                case 2:
+                    $('#mouth2').prop('checked', true);
+                    break;
+                case 3:
+                    $('#mouth2').prop('checked', true);
+                    break;
+                case 4:
+                    $('#mouth3').prop('checked', true);
+                    break;
+                case 5:
+                    $('#mouth3').prop('checked', true);
+                    break;
+                case 6:
+                    $('#mouth3').prop('checked', true);
+                    break;
+                case 7:
+                    $('#mouth3').prop('checked', true);
+                    break;
+                case 8:
+                    $('#mouth3').prop('checked', true);
+                    break;
+                case 9:
+                    $('#mouth4').prop('checked', true);
+                    break;
+                case 10:
+                    $('#mouth4').prop('checked', true);
+                    break;
+                case 11:
+                    $('#mouth4').prop('checked', true);
+                    break;
+                case 12:
+                    $('#mouth4').prop('checked', true);
+                    break;
+                case 13:
+                    $('#mouth4').prop('checked', true);
+                    break;
+                case 14:
+                    $('#mouth4').prop('checked', true);
+                    break;
+                default:
+                    $('#mouth1').prop('checked', true);
+                    break;
+            }
+      } else {
+        $(this).attr('value', 'false');
+        let elementToDelete = 4;
+
+        let index = CheckArray.indexOf(elementToDelete);
+
+        if (index !== -1) {
+          CheckArray.splice(index, 1);
+        }
+        let maxValue = Math.max(...CheckArray);
+          switch (maxValue) {
+                case 2:
+                    $('#mouth2').prop('checked', true);
+                    break;
+                case 3:
+                    $('#mouth2').prop('checked', true);
+                    break;
+                case 4:
+                    $('#mouth3').prop('checked', true);
+                    break;
+                case 5:
+                    $('#mouth3').prop('checked', true);
+                    break;
+                case 6:
+                    $('#mouth3').prop('checked', true);
+                    break;
+                case 7:
+                    $('#mouth3').prop('checked', true);
+                    break;
+                case 8:
+                    $('#mouth3').prop('checked', true);
+                    break;
+                case 9:
+                    $('#mouth4').prop('checked', true);
+                    break;
+                case 10:
+                    $('#mouth4').prop('checked', true);
+                    break;
+                case 11:
+                    $('#mouth4').prop('checked', true);
+                    break;
+                case 12:
+                    $('#mouth4').prop('checked', true);
+                    break;
+                case 13:
+                    $('#mouth4').prop('checked', true);
+                    break;
+                case 14:
+                    $('#mouth4').prop('checked', true);
+                    break;
+                default:
+                    $('#mouth1').prop('checked', true);
+                    break;
+            }
+      }
+      
+    });
+    $("#mouthE").on('change', function() {
+      if ($(this).is(':checked')) {
+        $(this).attr('value', 'true');
+          CheckDenAfSave = 5;
+          CheckArray.push(5)
+          let maxValue = Math.max(...CheckArray);
+          switch (maxValue) {
+                case 2:
+                    $('#mouth2').prop('checked', true);
+                    break;
+                case 3:
+                    $('#mouth2').prop('checked', true);
+                    break;
+                case 4:
+                    $('#mouth3').prop('checked', true);
+                    break;
+                case 5:
+                    $('#mouth3').prop('checked', true);
+                    break;
+                case 6:
+                    $('#mouth3').prop('checked', true);
+                    break;
+                case 7:
+                    $('#mouth3').prop('checked', true);
+                    break;
+                case 8:
+                    $('#mouth3').prop('checked', true);
+                    break;
+                case 9:
+                    $('#mouth4').prop('checked', true);
+                    break;
+                case 10:
+                    $('#mouth4').prop('checked', true);
+                    break;
+                case 11:
+                    $('#mouth4').prop('checked', true);
+                    break;
+                case 12:
+                    $('#mouth4').prop('checked', true);
+                    break;
+                case 13:
+                    $('#mouth4').prop('checked', true);
+                    break;
+                case 14:
+                    $('#mouth4').prop('checked', true);
+                    break;
+                default:
+                    $('#mouth1').prop('checked', true);
+                    break;
+            }
+      } else {
+        $(this).attr('value', 'false');
+        let elementToDelete = 5;
+
+        let index = CheckArray.indexOf(elementToDelete);
+
+        if (index !== -1) {
+          CheckArray.splice(index, 1);
+        }
+        let maxValue = Math.max(...CheckArray);
+          switch (maxValue) {
+               case 2:
+                    $('#mouth2').prop('checked', true);
+                    break;
+                case 3:
+                    $('#mouth2').prop('checked', true);
+                    break;
+                case 4:
+                    $('#mouth3').prop('checked', true);
+                    break;
+                case 5:
+                    $('#mouth3').prop('checked', true);
+                    break;
+                case 6:
+                    $('#mouth3').prop('checked', true);
+                    break;
+                case 7:
+                    $('#mouth3').prop('checked', true);
+                    break;
+                case 8:
+                    $('#mouth3').prop('checked', true);
+                    break;
+                case 9:
+                    $('#mouth4').prop('checked', true);
+                    break;
+                case 10:
+                    $('#mouth4').prop('checked', true);
+                    break;
+                case 11:
+                    $('#mouth4').prop('checked', true);
+                    break;
+                case 12:
+                    $('#mouth4').prop('checked', true);
+                    break;
+                case 13:
+                    $('#mouth4').prop('checked', true);
+                    break;
+                case 14:
+                    $('#mouth4').prop('checked', true);
+                    break;
+                default:
+                    $('#mouth1').prop('checked', true);
+                    break;
+            }
+      }
+      
+    });
+    $("#mouthF").on('change', function() {
+      if ($(this).is(':checked')) {
+        $(this).attr('value', 'true');
+          CheckDenAfSave = 6;
+          CheckArray.push(6)
+          let maxValue = Math.max(...CheckArray);
+          switch (maxValue) {
+                case 2:
+                    $('#mouth2').prop('checked', true);
+                    break;
+                case 3:
+                    $('#mouth2').prop('checked', true);
+                    break;
+                case 4:
+                    $('#mouth3').prop('checked', true);
+                    break;
+                case 5:
+                    $('#mouth3').prop('checked', true);
+                    break;
+                case 6:
+                    $('#mouth3').prop('checked', true);
+                    break;
+                case 7:
+                    $('#mouth3').prop('checked', true);
+                    break;
+                case 8:
+                    $('#mouth3').prop('checked', true);
+                    break;
+                case 9:
+                    $('#mouth4').prop('checked', true);
+                    break;
+                case 10:
+                    $('#mouth4').prop('checked', true);
+                    break;
+                case 11:
+                    $('#mouth4').prop('checked', true);
+                    break;
+                case 12:
+                    $('#mouth4').prop('checked', true);
+                    break;
+                case 13:
+                    $('#mouth4').prop('checked', true);
+                    break;
+                case 14:
+                    $('#mouth4').prop('checked', true);
+                    break;
+                default:
+                    $('#mouth1').prop('checked', true);
+                    break;
+            }
+      } else {
+        $(this).attr('value', 'false');
+        let elementToDelete = 6;
+
+        let index = CheckArray.indexOf(elementToDelete);
+
+        if (index !== -1) {
+          CheckArray.splice(index, 1);
+        }
+        let maxValue = Math.max(...CheckArray);
+          switch (maxValue) {
+                case 2:
+                    $('#mouth2').prop('checked', true);
+                    break;
+                case 3:
+                    $('#mouth2').prop('checked', true);
+                    break;
+                case 4:
+                    $('#mouth3').prop('checked', true);
+                    break;
+                case 5:
+                    $('#mouth3').prop('checked', true);
+                    break;
+                case 6:
+                    $('#mouth3').prop('checked', true);
+                    break;
+                case 7:
+                    $('#mouth3').prop('checked', true);
+                    break;
+                case 8:
+                    $('#mouth3').prop('checked', true);
+                    break;
+                case 9:
+                    $('#mouth4').prop('checked', true);
+                    break;
+                case 10:
+                    $('#mouth4').prop('checked', true);
+                    break;
+                case 11:
+                    $('#mouth4').prop('checked', true);
+                    break;
+                case 12:
+                    $('#mouth4').prop('checked', true);
+                    break;
+                case 13:
+                    $('#mouth4').prop('checked', true);
+                    break;
+                case 14:
+                    $('#mouth4').prop('checked', true);
+                    break;
+                default:
+                    $('#mouth1').prop('checked', true);
+                    break;
+            }
+      }
+      
+    });
+    $("#mouthG").on('change', function() {
+      if ($(this).is(':checked')) {
+        $(this).attr('value', 'true');
+          CheckDenAfSave = 7;
+          CheckArray.push(7)
+          let maxValue = Math.max(...CheckArray);
+          switch (maxValue) {
+               case 2:
+                    $('#mouth2').prop('checked', true);
+                    break;
+                case 3:
+                    $('#mouth2').prop('checked', true);
+                    break;
+                case 4:
+                    $('#mouth3').prop('checked', true);
+                    break;
+                case 5:
+                    $('#mouth3').prop('checked', true);
+                    break;
+                case 6:
+                    $('#mouth3').prop('checked', true);
+                    break;
+                case 7:
+                    $('#mouth3').prop('checked', true);
+                    break;
+                case 8:
+                    $('#mouth3').prop('checked', true);
+                    break;
+                case 9:
+                    $('#mouth4').prop('checked', true);
+                    break;
+                case 10:
+                    $('#mouth4').prop('checked', true);
+                    break;
+                case 11:
+                    $('#mouth4').prop('checked', true);
+                    break;
+                case 12:
+                    $('#mouth4').prop('checked', true);
+                    break;
+                case 13:
+                    $('#mouth4').prop('checked', true);
+                    break;
+                case 14:
+                    $('#mouth4').prop('checked', true);
+                    break;
+                default:
+                    $('#mouth1').prop('checked', true);
+                    break;
+            }
+      } else {
+        $(this).attr('value', 'false');
+        let elementToDelete = 7;
+
+        let index = CheckArray.indexOf(elementToDelete);
+
+        if (index !== -1) {
+          CheckArray.splice(index, 1);
+        }
+        let maxValue = Math.max(...CheckArray);
+          switch (maxValue) {
+                case 2:
+                    $('#mouth2').prop('checked', true);
+                    break;
+                case 3:
+                    $('#mouth2').prop('checked', true);
+                    break;
+                case 4:
+                    $('#mouth3').prop('checked', true);
+                    break;
+                case 5:
+                    $('#mouth3').prop('checked', true);
+                    break;
+                case 6:
+                    $('#mouth3').prop('checked', true);
+                    break;
+                case 7:
+                    $('#mouth3').prop('checked', true);
+                    break;
+                case 8:
+                    $('#mouth3').prop('checked', true);
+                    break;
+                case 9:
+                    $('#mouth4').prop('checked', true);
+                    break;
+                case 10:
+                    $('#mouth4').prop('checked', true);
+                    break;
+                case 11:
+                    $('#mouth4').prop('checked', true);
+                    break;
+                case 12:
+                    $('#mouth4').prop('checked', true);
+                    break;
+                case 13:
+                    $('#mouth4').prop('checked', true);
+                    break;
+                case 14:
+                    $('#mouth4').prop('checked', true);
+                    break;
+                default:
+                    $('#mouth1').prop('checked', true);
+                    break;
+            }
+      }
+      
+    });
+    $("#mouthH").on('change', function() {
+      if ($(this).is(':checked')) {
+        $(this).attr('value', 'true');
+          CheckDenAfSave = 8;
+          CheckArray.push(8)
+          let maxValue = Math.max(...CheckArray);
+          switch (maxValue) {
+                case 2:
+                    $('#mouth2').prop('checked', true);
+                    break;
+                case 3:
+                    $('#mouth2').prop('checked', true);
+                    break;
+                case 4:
+                    $('#mouth3').prop('checked', true);
+                    break;
+                case 5:
+                    $('#mouth3').prop('checked', true);
+                    break;
+                case 6:
+                    $('#mouth3').prop('checked', true);
+                    break;
+                case 7:
+                    $('#mouth3').prop('checked', true);
+                    break;
+                case 8:
+                    $('#mouth3').prop('checked', true);
+                    break;
+                case 9:
+                    $('#mouth4').prop('checked', true);
+                    break;
+                case 10:
+                    $('#mouth4').prop('checked', true);
+                    break;
+                case 11:
+                    $('#mouth4').prop('checked', true);
+                    break;
+                case 12:
+                    $('#mouth4').prop('checked', true);
+                    break;
+                case 13:
+                    $('#mouth4').prop('checked', true);
+                    break;
+                case 14:
+                    $('#mouth4').prop('checked', true);
+                    break;
+                default:
+                    $('#mouth1').prop('checked', true);
+                    break;
+            }
+      } else {
+        $(this).attr('value', 'false');
+        let elementToDelete = 8;
+
+        let index = CheckArray.indexOf(elementToDelete);
+
+        if (index !== -1) {
+          CheckArray.splice(index, 1);
+        }
+        let maxValue = Math.max(...CheckArray);
+          switch (maxValue) {
+                case 2:
+                    $('#mouth2').prop('checked', true);
+                    break;
+                case 3:
+                    $('#mouth2').prop('checked', true);
+                    break;
+                case 4:
+                    $('#mouth3').prop('checked', true);
+                    break;
+                case 5:
+                    $('#mouth3').prop('checked', true);
+                    break;
+                case 6:
+                    $('#mouth3').prop('checked', true);
+                    break;
+                case 7:
+                    $('#mouth3').prop('checked', true);
+                    break;
+                case 8:
+                    $('#mouth3').prop('checked', true);
+                    break;
+                case 9:
+                    $('#mouth4').prop('checked', true);
+                    break;
+                case 10:
+                    $('#mouth4').prop('checked', true);
+                    break;
+                case 11:
+                    $('#mouth4').prop('checked', true);
+                    break;
+                case 12:
+                    $('#mouth4').prop('checked', true);
+                    break;
+                case 13:
+                    $('#mouth4').prop('checked', true);
+                    break;
+                case 14:
+                    $('#mouth4').prop('checked', true);
+                    break;
+                default:
+                    $('#mouth1').prop('checked', true);
+                    break;
+            }
+      }
+      
+    });
+    $("#mouthI").on('change', function() {
+      if ($(this).is(':checked')) {
+        $(this).attr('value', 'true');
+          CheckDenAfSave = 9;
+          CheckArray.push(9)
+          let maxValue = Math.max(...CheckArray);
+          switch (maxValue) {
+                case 2:
+                    $('#mouth2').prop('checked', true);
+                    break;
+                case 3:
+                    $('#mouth2').prop('checked', true);
+                    break;
+                case 4:
+                    $('#mouth3').prop('checked', true);
+                    break;
+                case 5:
+                    $('#mouth3').prop('checked', true);
+                    break;
+                case 6:
+                    $('#mouth3').prop('checked', true);
+                    break;
+                case 7:
+                    $('#mouth3').prop('checked', true);
+                    break;
+                case 8:
+                    $('#mouth3').prop('checked', true);
+                    break;
+                case 9:
+                    $('#mouth4').prop('checked', true);
+                    break;
+                case 10:
+                    $('#mouth4').prop('checked', true);
+                    break;
+                case 11:
+                    $('#mouth4').prop('checked', true);
+                    break;
+                case 12:
+                    $('#mouth4').prop('checked', true);
+                    break;
+                case 13:
+                    $('#mouth4').prop('checked', true);
+                    break;
+                case 14:
+                    $('#mouth4').prop('checked', true);
+                    break;
+                default:
+                    $('#mouth1').prop('checked', true);
+                    break;
+            }
+      } else {
+        $(this).attr('value', 'false');
+        let elementToDelete = 9;
+
+        let index = CheckArray.indexOf(elementToDelete);
+
+        if (index !== -1) {
+          CheckArray.splice(index, 1);
+        }
+        let maxValue = Math.max(...CheckArray);
+          switch (maxValue) {
+                case 2:
+                    $('#mouth2').prop('checked', true);
+                    break;
+                case 3:
+                    $('#mouth2').prop('checked', true);
+                    break;
+                case 4:
+                    $('#mouth3').prop('checked', true);
+                    break;
+                case 5:
+                    $('#mouth3').prop('checked', true);
+                    break;
+                case 6:
+                    $('#mouth3').prop('checked', true);
+                    break;
+                case 7:
+                    $('#mouth3').prop('checked', true);
+                    break;
+                case 8:
+                    $('#mouth3').prop('checked', true);
+                    break;
+                case 9:
+                    $('#mouth4').prop('checked', true);
+                    break;
+                case 10:
+                    $('#mouth4').prop('checked', true);
+                    break;
+                case 11:
+                    $('#mouth4').prop('checked', true);
+                    break;
+                case 12:
+                    $('#mouth4').prop('checked', true);
+                    break;
+                case 13:
+                    $('#mouth4').prop('checked', true);
+                    break;
+                case 14:
+                    $('#mouth4').prop('checked', true);
+                    break;
+                default:
+                    $('#mouth1').prop('checked', true);
+                    break;
+            }
+      }
+      
+    });
+    $("#mouthJ").on('change', function() {
+      if ($(this).is(':checked')) {
+        $(this).attr('value', 'true');
+          CheckDenAfSave = 10;
+          CheckArray.push(10)
+          let maxValue = Math.max(...CheckArray);
+          switch (maxValue) {
+                case 2:
+                    $('#mouth2').prop('checked', true);
+                    break;
+                case 3:
+                    $('#mouth2').prop('checked', true);
+                    break;
+                case 4:
+                    $('#mouth3').prop('checked', true);
+                    break;
+                case 5:
+                    $('#mouth3').prop('checked', true);
+                    break;
+                case 6:
+                    $('#mouth3').prop('checked', true);
+                    break;
+                case 7:
+                    $('#mouth3').prop('checked', true);
+                    break;
+                case 8:
+                    $('#mouth3').prop('checked', true);
+                    break;
+                case 9:
+                    $('#mouth4').prop('checked', true);
+                    break;
+                case 10:
+                    $('#mouth4').prop('checked', true);
+                    break;
+                case 11:
+                    $('#mouth4').prop('checked', true);
+                    break;
+                case 12:
+                    $('#mouth4').prop('checked', true);
+                    break;
+                case 13:
+                    $('#mouth4').prop('checked', true);
+                    break;
+                case 14:
+                    $('#mouth4').prop('checked', true);
+                    break;
+                default:
+                    $('#mouth1').prop('checked', true);
+                    break;
+            }
+      } else {
+        $(this).attr('value', 'false');
+        let elementToDelete = 10;
+
+        let index = CheckArray.indexOf(elementToDelete);
+
+        if (index !== -1) {
+          CheckArray.splice(index, 1);
+        }
+        let maxValue = Math.max(...CheckArray);
+          switch (maxValue) {
+                case 2:
+                    $('#mouth2').prop('checked', true);
+                    break;
+                case 3:
+                    $('#mouth2').prop('checked', true);
+                    break;
+                case 4:
+                    $('#mouth3').prop('checked', true);
+                    break;
+                case 5:
+                    $('#mouth3').prop('checked', true);
+                    break;
+                case 6:
+                    $('#mouth3').prop('checked', true);
+                    break;
+                case 7:
+                    $('#mouth3').prop('checked', true);
+                    break;
+                case 8:
+                    $('#mouth3').prop('checked', true);
+                    break;
+                case 9:
+                    $('#mouth4').prop('checked', true);
+                    break;
+                case 10:
+                    $('#mouth4').prop('checked', true);
+                    break;
+                case 11:
+                    $('#mouth4').prop('checked', true);
+                    break;
+                case 12:
+                    $('#mouth4').prop('checked', true);
+                    break;
+                case 13:
+                    $('#mouth4').prop('checked', true);
+                    break;
+                case 14:
+                    $('#mouth4').prop('checked', true);
+                    break;
+                default:
+                    $('#mouth1').prop('checked', true);
+                    break;
+            }
+      }
+      
+    });
+    $("#mouthK").on('change', function() {
+      if ($(this).is(':checked')) {
+        $(this).attr('value', 'true');
+          CheckDenAfSave = 11;
+          CheckArray.push(11)
+          let maxValue = Math.max(...CheckArray);
+          switch (maxValue) {
+                case 2:
+                    $('#mouth2').prop('checked', true);
+                    break;
+                case 3:
+                    $('#mouth2').prop('checked', true);
+                    break;
+                case 4:
+                    $('#mouth3').prop('checked', true);
+                    break;
+                case 5:
+                    $('#mouth3').prop('checked', true);
+                    break;
+                case 6:
+                    $('#mouth3').prop('checked', true);
+                    break;
+                case 7:
+                    $('#mouth3').prop('checked', true);
+                    break;
+                case 8:
+                    $('#mouth3').prop('checked', true);
+                    break;
+                case 9:
+                    $('#mouth4').prop('checked', true);
+                    break;
+                case 10:
+                    $('#mouth4').prop('checked', true);
+                    break;
+                case 11:
+                    $('#mouth4').prop('checked', true);
+                    break;
+                case 12:
+                    $('#mouth4').prop('checked', true);
+                    break;
+                case 13:
+                    $('#mouth4').prop('checked', true);
+                    break;
+                case 14:
+                    $('#mouth4').prop('checked', true);
+                    break;
+                default:
+                    $('#mouth1').prop('checked', true);
+                    break;
+            }
+      } else {
+        $(this).attr('value', 'false');
+        let elementToDelete = 11;
+
+        let index = CheckArray.indexOf(elementToDelete);
+
+        if (index !== -1) {
+          CheckArray.splice(index, 1);
+        }
+        let maxValue = Math.max(...CheckArray);
+          switch (maxValue) {
+                case 2:
+                    $('#mouth2').prop('checked', true);
+                    break;
+                case 3:
+                    $('#mouth2').prop('checked', true);
+                    break;
+                case 4:
+                    $('#mouth3').prop('checked', true);
+                    break;
+                case 5:
+                    $('#mouth3').prop('checked', true);
+                    break;
+                case 6:
+                    $('#mouth3').prop('checked', true);
+                    break;
+                case 7:
+                    $('#mouth3').prop('checked', true);
+                    break;
+                case 8:
+                    $('#mouth3').prop('checked', true);
+                    break;
+                case 9:
+                    $('#mouth4').prop('checked', true);
+                    break;
+                case 10:
+                    $('#mouth4').prop('checked', true);
+                    break;
+                case 11:
+                    $('#mouth4').prop('checked', true);
+                    break;
+                case 12:
+                    $('#mouth4').prop('checked', true);
+                    break;
+                case 13:
+                    $('#mouth4').prop('checked', true);
+                    break;
+                case 14:
+                    $('#mouth4').prop('checked', true);
+                    break;
+                default:
+                    $('#mouth1').prop('checked', true);
+                    break;
+            }
+      }
+      
+    });
+    $("#mouthL").on('change', function() {
+      if ($(this).is(':checked')) {
+        $(this).attr('value', 'true');
+          CheckDenAfSave = 12;
+          CheckArray.push(12)
+          let maxValue = Math.max(...CheckArray);
+          switch (maxValue) {
+               case 2:
+                    $('#mouth2').prop('checked', true);
+                    break;
+                case 3:
+                    $('#mouth2').prop('checked', true);
+                    break;
+                case 4:
+                    $('#mouth3').prop('checked', true);
+                    break;
+                case 5:
+                    $('#mouth3').prop('checked', true);
+                    break;
+                case 6:
+                    $('#mouth3').prop('checked', true);
+                    break;
+                case 7:
+                    $('#mouth3').prop('checked', true);
+                    break;
+                case 8:
+                    $('#mouth3').prop('checked', true);
+                    break;
+                case 9:
+                    $('#mouth4').prop('checked', true);
+                    break;
+                case 10:
+                    $('#mouth4').prop('checked', true);
+                    break;
+                case 11:
+                    $('#mouth4').prop('checked', true);
+                    break;
+                case 12:
+                    $('#mouth4').prop('checked', true);
+                    break;
+                case 13:
+                    $('#mouth4').prop('checked', true);
+                    break;
+                case 14:
+                    $('#mouth4').prop('checked', true);
+                    break;
+                default:
+                    $('#mouth1').prop('checked', true);
+                    break;
+            }
+      } else {
+        $(this).attr('value', 'false');
+        let elementToDelete = 12;
+
+        let index = CheckArray.indexOf(elementToDelete);
+
+        if (index !== -1) {
+          CheckArray.splice(index, 1);
+        }
+        let maxValue = Math.max(...CheckArray);
+          switch (maxValue) {
+                case 2:
+                    $('#mouth2').prop('checked', true);
+                    break;
+                case 3:
+                    $('#mouth2').prop('checked', true);
+                    break;
+                case 4:
+                    $('#mouth3').prop('checked', true);
+                    break;
+                case 5:
+                    $('#mouth3').prop('checked', true);
+                    break;
+                case 6:
+                    $('#mouth3').prop('checked', true);
+                    break;
+                case 7:
+                    $('#mouth3').prop('checked', true);
+                    break;
+                case 8:
+                    $('#mouth3').prop('checked', true);
+                    break;
+                case 9:
+                    $('#mouth4').prop('checked', true);
+                    break;
+                case 10:
+                    $('#mouth4').prop('checked', true);
+                    break;
+                case 11:
+                    $('#mouth4').prop('checked', true);
+                    break;
+                case 12:
+                    $('#mouth4').prop('checked', true);
+                    break;
+                case 13:
+                    $('#mouth4').prop('checked', true);
+                    break;
+                case 14:
+                    $('#mouth4').prop('checked', true);
+                    break;
+                default:
+                    $('#mouth1').prop('checked', true);
+                    break;
+            }
+      }
+      
+    });
+    $("#mouthM").on('change', function() {
+      if ($(this).is(':checked')) {
+        $(this).attr('value', 'true');
+          CheckDenAfSave = 13;
+          CheckArray.push(13)
+          let maxValue = Math.max(...CheckArray);
+          switch (maxValue) {
+                case 2:
+                    $('#mouth2').prop('checked', true);
+                    break;
+                case 3:
+                    $('#mouth2').prop('checked', true);
+                    break;
+                case 4:
+                    $('#mouth3').prop('checked', true);
+                    break;
+                case 5:
+                    $('#mouth3').prop('checked', true);
+                    break;
+                case 6:
+                    $('#mouth3').prop('checked', true);
+                    break;
+                case 7:
+                    $('#mouth3').prop('checked', true);
+                    break;
+                case 8:
+                    $('#mouth3').prop('checked', true);
+                    break;
+                case 9:
+                    $('#mouth4').prop('checked', true);
+                    break;
+                case 10:
+                    $('#mouth4').prop('checked', true);
+                    break;
+                case 11:
+                    $('#mouth4').prop('checked', true);
+                    break;
+                case 12:
+                    $('#mouth4').prop('checked', true);
+                    break;
+                case 13:
+                    $('#mouth4').prop('checked', true);
+                    break;
+                case 14:
+                    $('#mouth4').prop('checked', true);
+                    break;
+                default:
+                    $('#mouth1').prop('checked', true);
+                    break;
+            }
+      } else {
+        $(this).attr('value', 'false');
+        let elementToDelete = 13;
+
+        let index = CheckArray.indexOf(elementToDelete);
+
+        if (index !== -1) {
+          CheckArray.splice(index, 1);
+        }
+        let maxValue = Math.max(...CheckArray);
+          switch (maxValue) {
+                case 2:
+                    $('#mouth2').prop('checked', true);
+                    break;
+                case 3:
+                    $('#mouth2').prop('checked', true);
+                    break;
+                case 4:
+                    $('#mouth3').prop('checked', true);
+                    break;
+                case 5:
+                    $('#mouth3').prop('checked', true);
+                    break;
+                case 6:
+                    $('#mouth3').prop('checked', true);
+                    break;
+                case 7:
+                    $('#mouth3').prop('checked', true);
+                    break;
+                case 8:
+                    $('#mouth3').prop('checked', true);
+                    break;
+                case 9:
+                    $('#mouth4').prop('checked', true);
+                    break;
+                case 10:
+                    $('#mouth4').prop('checked', true);
+                    break;
+                case 11:
+                    $('#mouth4').prop('checked', true);
+                    break;
+                case 12:
+                    $('#mouth4').prop('checked', true);
+                    break;
+                case 13:
+                    $('#mouth4').prop('checked', true);
+                    break;
+                case 14:
+                    $('#mouth4').prop('checked', true);
+                    break;
+                default:
+                    $('#mouth1').prop('checked', true);
+                    break;
+            }
+      }
+      
+    });
+    $("#mouthN").on('change', function() {
+      if ($(this).is(':checked')) {
+        $(this).attr('value', 'true');
+          CheckDenAfSave = 14;
+          CheckArray.push(14)
+          let maxValue = Math.max(...CheckArray);
+          switch (maxValue) {
+                case 2:
+                    $('#mouth2').prop('checked', true);
+                    break;
+                case 3:
+                    $('#mouth2').prop('checked', true);
+                    break;
+                case 4:
+                    $('#mouth3').prop('checked', true);
+                    break;
+                case 5:
+                    $('#mouth3').prop('checked', true);
+                    break;
+                case 6:
+                    $('#mouth3').prop('checked', true);
+                    break;
+                case 7:
+                    $('#mouth3').prop('checked', true);
+                    break;
+                case 8:
+                    $('#mouth3').prop('checked', true);
+                    break;
+                case 9:
+                    $('#mouth4').prop('checked', true);
+                    break;
+                case 10:
+                    $('#mouth4').prop('checked', true);
+                    break;
+                case 11:
+                    $('#mouth4').prop('checked', true);
+                    break;
+                case 12:
+                    $('#mouth4').prop('checked', true);
+                    break;
+                case 13:
+                    $('#mouth4').prop('checked', true);
+                    break;
+                case 14:
+                    $('#mouth4').prop('checked', true);
+                    break;
+                default:
+                    $('#mouth1').prop('checked', true);
+                    break;
+            }
+      } else {
+        $(this).attr('value', 'false');
+        let elementToDelete = 14;
+
+        let index = CheckArray.indexOf(elementToDelete);
+
+        if (index !== -1) {
+          CheckArray.splice(index, 1);
+        }
+        let maxValue = Math.max(...CheckArray);
+          switch (maxValue) {
+                case 2:
+                    $('#mouth2').prop('checked', true);
+                    break;
+                case 3:
+                    $('#mouth2').prop('checked', true);
+                    break;
+                case 4:
+                    $('#mouth3').prop('checked', true);
+                    break;
+                case 5:
+                    $('#mouth3').prop('checked', true);
+                    break;
+                case 6:
+                    $('#mouth3').prop('checked', true);
+                    break;
+                case 7:
+                    $('#mouth3').prop('checked', true);
+                    break;
+                case 8:
+                    $('#mouth3').prop('checked', true);
+                    break;
+                case 9:
+                    $('#mouth4').prop('checked', true);
+                    break;
+                case 10:
+                    $('#mouth4').prop('checked', true);
+                    break;
+                case 11:
+                    $('#mouth4').prop('checked', true);
+                    break;
+                case 12:
+                    $('#mouth4').prop('checked', true);
+                    break;
+                case 13:
+                    $('#mouth4').prop('checked', true);
+                    break;
+                case 14:
+                    $('#mouth4').prop('checked', true);
+                    break;
+                default:
+                    $('#mouth1').prop('checked', true);
+                    break;
+            }
+      }
+      
+    });
+
+
+    function DenBCheckChange(value) {
+        CheckDenBfSave = value;
+        if (value > MaxDen) {
+            MaxDen = value
+            switch (MaxDen) {
+                case 2:
+                    $('#mouth2').prop('checked', true);
+                    break;
+                case 12:
+                    $('#mouth2').prop('checked', true);
+                    break;
+                case 3:
+                    $('#mouth3').prop('checked', true);
+                    break;
+                case 4:
+                    $('#mouth3').prop('checked', true);
+                    break;
+                case 5:
+                    $('#mouth3').prop('checked', true);
+                    break;
+                case 6:
+                    $('#mouth3').prop('checked', true);
+                    break;
+                case 13:
+                    $('#mouth3').prop('checked', true);
+                    break;
+                case 7:
+                    $('#mouth4').prop('checked', true);
+                    break;
+                case 8:
+                    $('#mouth4').prop('checked', true);
+                    break;
+                case 9:
+                    $('#mouth4').prop('checked', true);
+                    break;
+                case 10:
+                    $('#mouth4').prop('checked', true);
+                    break;
+                case 11:
+                    $('#mouth4').prop('checked', true);
+                    break;
+                case 14:
+                    $('#mouth4').prop('checked', true);
+                    break;
+                default:
+                    $('#mouth1').prop('checked', true);
+                    break;
+            }
+        }
+
+    }
+    let checkDocDetail = '';
+    let checkDenDetail = '';
+    function getPhychCheck(memberId) {
+        $.ajax({
+            type: "GET",
+            url: "/Doctor?handler=PhychCheck",
+            data: { "id": memberId },
+            success: function (response) {
+                $('#phychText').val('');
+                if (response) {
+                    $('#phychText').val(response.detail);
+                }
+            }
+        });
+    }
+    function getDoctorCheck(memberId) {
+        $.ajax({
+            type: "GET",
+            url: "/Doctor?handler=DoctorCheck",
+            data: { "id": memberId },
+            success: function (response) {
+                var current = new Date()
+                    var currentYear = current.getFullYear();
+                    var resDate = new Date(response.createDate);
+                    var resYear = resDate.getFullYear();
+                if (resYear < currentYear) {
+                    $('#body1').prop('checked', false);
+                    $('#body2').prop('checked', false);
+                    $('#body3').prop('checked', false);
+                    $('#inside1').prop('checked', false);
+                    $('#inside2').prop('checked', false);
+                    $('#bodyText').val('');
+                    $('#pcancer1').prop('checked', false);
+                    $('#pcancer2').prop('checked', false);
+                    $('#insideText').val('');
+                }
+                else{
+                    if (response) {
+                        const chk = response.isResult;
+                        if (chk == 1) {
+                            $('#body1').prop('checked', true);
+                        } else if (chk == 2) {
+                            $('#body2').prop('checked', true);
+                        } else {
+                            $('#body3').prop('checked', true);
+                        }
+                        const isInsideCheck = response.isInsideCheck;
+                        if (isInsideCheck == true) {
+                            $('#inside1').prop('checked', true);
+                        }
+                        else {
+                            $('#inside2').prop('checked', true);
+                        }
+                        const isPapSmearCheck = response.isPapSmearCheck;
+                        if (isPapSmearCheck == true) {
+                            $('#pcancer1').prop('checked', true);
+                        }
+                        else {
+                            $('#pcancer2').prop('checked', true);
+                        }
+                        $('#bodyText').val(response.detail);
+                        $('#insideText').val(response.insideDetail);
+                        checkDocDetail = response.detail;
+                    }
+                }
+                
+                
+            }
+        });
+    }
+    function getXTest(idcard) {
+        $.ajax({
+            type: "GET",
+            url: "/Doctor?handler=XRayResult",
+            data: { "id": idcard },
+            success: function (response) {
+                if (response.data != []) {
+                    var textResualt = null;
+                    var colors = ['#DAF8F2', '#FFF0C9', '#DAF8F2', '#FFF0C9', '#DAF8F2', '#FFF0C9', '#DAF8F2', '#FFF0C9'];
+                    var listDateDataXray = [];
+                    var listTypeXray = [];
+                    var subDateDataXray = null;
+                    var subTypeXray = null;
+                    Object.keys(response).forEach(key => {
+                        textResualt = response[key]; // 👉️ "name", "country"
+                        //console.log(oldRel[key]); // 👉️ "Tom", "Chile"
+                    });
+
+                    if (textResualt.length > 0) {
+                        $('#forCardXray').empty();
+                        $('#dateSectorXray').empty();
+                        $('#typeSectorXray').empty();
+                        dataXray = textResualt;
+                        Object.keys(textResualt).forEach(key => {
+                            if (subDateDataXray != textResualt[key].result_date) {
+                                listDateDataXray.push(textResualt[key].result_date);
+                                subDateDataXray = textResualt[key].result_date;
+                            }
+                        });
+                        renderSelector(listDateDataXray, "#dateSectorXray");
+                        var dropDateVal = $("#dateSectorXray").val()
+                        Object.keys(textResualt).forEach(key => {
+                            if (dropDateVal == textResualt[key].result_date) {
+                                if (subTypeXray != textResualt[key].xray_group) {
+                                    listTypeXray.push(textResualt[key].xray_group);
+                                    subTypeXray = textResualt[key].xray_group;
+                                }
+                            }
+                        });
+                        let uniqueChars = listTypeXray.filter((element, index) => {
+                            return listTypeXray.indexOf(element) === index;
+                        });
+                        renderSelector(uniqueChars, "#typeSectorXray");
+
+                        var dropTypeVal = $("#typeSectorXray").val()
+                        Object.keys(textResualt).forEach(key => {
+                            // 👉️ "name", "country"
+                            //console.log(oldRel[key]); // 👉️ "Tom", "Chile"
+                            document.getElementById("room").value = textResualt[key].id;
+                            document.getElementById("title").value = textResualt[key].hn;
+                            if (dropDateVal == textResualt[key].result_date && dropTypeVal == textResualt[key].xray_group) {
+                                $('#forCardXray').append(`
+                        <div class="detail-card-wrapper-modal" style="background-color:${colors[key]};border-radius: 20px;padding: 20px;">
+                            <div class="detail-card">
+                                <div id="resultText${key}"  style='font-size:28px;color:black '>
+                                    ${textResualt[key].result}
+                                </div>
+                            </div>
+                        </div>
+                        <br />`);
+                            }
+
+
+                        });
+
+                    }
+                    else {
+                        alert('ไม่มีข้อมูล X-ray');
+                    }
+                    if (textResualt != null) {
+                        var dropDateVal = $("#dateSectorXray").val()
+                        var dropTypeVal = $("#typeSectorXray").val()
+                        Object.keys(textResualt).forEach(key => {
+                            if (dropDateVal == textResualt[key].result_date && dropTypeVal == textResualt[key].xray_group) {
+                                document.getElementById(`resultText${key}`).innerText = ``;
+                                document.getElementById(`resultText${key}`).innerText = textResualt[key].result;
+                            }
+
+
+                        });
+                    }
+                    $('#event-modal').modal('show');
+                }
+                else {
+                    alert("ไม่มีข้อมูล")
+                }
+            }
+        });
+    }
+    function getPrep(hn) {
+        $.ajax({
+            type: "GET",
+            url: "/Doctor?handler=PrepResult",
+            data: { "hn": hn },
+            success: function (response) {
+                if (response.data != []) {
+                    var textResualt = null;
+                    var colors = ['#DAF8F2', '#FFF0C9', '#DAF8F2', '#FFF0C9', '#DAF8F2', '#FFF0C9', '#DAF8F2', '#FFF0C9'];
+                    var listDateDataXray = [];
+                    var subDateDataXray = null;
+                    Object.keys(response).forEach(key => {
+                        textResualt = response[key]; // 👉️ "name", "country"
+                        //console.log(oldRel[key]); // 👉️ "Tom", "Chile"
+                    });
+
+                    if (textResualt.length > 0) {
+                        $('#forCardPrep').empty();
+                        $('#dateSectorPrep').empty();
+                        dataXray = textResualt;
+                        Object.keys(textResualt).forEach(key => {
+                            if (subDateDataXray != textResualt[key].result_date) {
+                                listDateDataXray.push(textResualt[key].result_date);
+                                subDateDataXray = textResualt[key].result_date;
+                            }
+                        });
+                        renderSelector(listDateDataXray, "#dateSectorPrep");
+                        var dropDateVal = $("#dateSectorPrep").val()
+                        Object.keys(textResualt).forEach(key => {
+                            // 👉️ "name", "country"
+                            //console.log(oldRel[key]); // 👉️ "Tom", "Chile"
+                            document.getElementById("vnPrep").value = textResualt[key].id;
+                            document.getElementById("hnPrep").value = textResualt[key].hn;
+                            if (dropDateVal == textResualt[key].result_date && dropTypeVal == textResualt[key].xray_group) {
+                                $('#forCardPrep').append(`
+                        <div class="detail-card-wrapper-modal" style="background-color:${colors[key]};border-radius: 20px;padding: 20px;">
+                            <div class="detail-card">
+                                <div id="resultText${key}"  style='font-size:28px;color:black '>
+                                    ${textResualt[key].result}
+                                </div>
+                            </div>
+                        </div>
+                        <br />`);
+                            }
+
+
+                        });
+                        $('#event-modal-prep').modal('show');
+                    }
+                    else {
+                        alert('ไม่มีข้อมูล มะเร็งปากมดลูก');
+                    }
+                    if (textResualt != null) {
+                        var dropDateVal = $("#forCardPrep").val()
+                        Object.keys(textResualt).forEach(key => {
+                            if (dropDateVal == textResualt[key].result_date && dropTypeVal == textResualt[key].xray_group) {
+                                document.getElementById(`resultText${key}`).innerText = ``;
+                                document.getElementById(`resultText${key}`).innerText = textResualt[key].result;
+                            }
+
+
+                        });
+                    }
+
+                }
+                else {
+                    alert("ไม่มีข้อมูล")
+                }
+            }
+        });
+    }
+    function getDentistCheck(memberId) {
+        $.ajax({
+            type: "GET",
+            url: "/Doctor?handler=DentistCheck",
+            data: { "id": memberId },
+            success: function (response) {
+                    var current = new Date()
+                    var currentYear = current.getFullYear();
+                    var resDate = new Date(response.createDate);
+                    var resYear = resDate.getFullYear();
+                    if(resYear < currentYear){
+                        $('#mouth1').prop('checked', false);
+                        $('#mouth2').prop('checked', false);
+                        $('#mouth3').prop('checked', false);
+                        $('#mouth4').prop('checked', false);
+                        $('#mouthText').val('');
+                         $('#mouthA').prop('checked', false);
+                            $('#mouthB').prop('checked', false);
+                            $('#mouthD').prop('checked', false);
+                            $('#mouthE').prop('checked', false);
+                            $('#mouthF').prop('checked', false);
+                            $('#mouthG').prop('checked', false);
+                            $('#mouthI').prop('checked', false);
+                            $('#mouthJ').prop('checked', false);
+                            $('#mouthK').prop('checked', false);
+                            $('#mouthM').prop('checked', false);
+                            $('#mouthC').prop('checked', false);
+                            $('#mouthH').prop('checked', false);
+                            $('#mouthN').prop('checked', false);
+                    }
+                    else{
+                        if (response) {
+                        const chk = response.level ? response.level : 0;
+                        switch (chk) {
+                            case 2:
+                                $('#mouth2').prop('checked', true);
+                                break;
+                            case 3:
+                                $('#mouth3').prop('checked', true);
+                                break;
+                            case 4:
+                                $('#mouth4').prop('checked', true);
+                                break;
+                            default:
+                                $('#mouth1').prop('checked', true);
+                                break;
+                        }
+                        $('#mouthText').val(response.detail);
+                        checkDenDetail = response.detail;
+                        var oral = response.oralHealths;
+                        if (oral != null) {
+                            Object.keys(oral).forEach(keys => {
+                                switch (oral[keys].id) {
+                                    case 1:
+                                        $('#mouthA').prop('checked', true);
+                                        break;
+                                    case 2:
+                                        $('#mouthB').prop('checked', true);
+                                        break;
+                                    case 3:
+                                        $('#mouthD').prop('checked', true);
+                                        break;
+                                    case 4:
+                                        $('#mouthE').prop('checked', true);
+                                        break;
+                                    case 5:
+                                        $('#mouthF').prop('checked', true);
+                                        break;
+                                    case 6:
+                                        $('#mouthG').prop('checked', true);
+                                        break;
+                                    case 7:
+                                        $('#mouthI').prop('checked', true);
+                                        break;
+                                    case 8:
+                                        $('#mouthJ').prop('checked', true);
+                                        break;
+                                    case 9:
+                                        $('#mouthK').prop('checked', true);
+                                        break;
+                                    case 10:
+                                        $('#mouthL').prop('checked', true);
+                                        break;
+                                    case 11:
+                                        $('#mouthM').prop('checked', true);
+                                        break;
+                                    case 12:
+                                        $('#mouthC').prop('checked', true);
+                                        break;
+                                    case 13:
+                                        $('#mouthH').prop('checked', true);
+                                        break;
+                                    case 14:
+                                        $('#mouthN').prop('checked', true);
+                                        break;
+                                }
+                            });
+                        }
+                        else {
+                            $('#mouthA').prop('checked', false);
+                            $('#mouthB').prop('checked', false);
+                            $('#mouthD').prop('checked', false);
+                            $('#mouthE').prop('checked', false);
+                            $('#mouthF').prop('checked', false);
+                            $('#mouthG').prop('checked', false);
+                            $('#mouthI').prop('checked', false);
+                            $('#mouthJ').prop('checked', false);
+                            $('#mouthK').prop('checked', false);
+                            $('#mouthM').prop('checked', false);
+                            $('#mouthC').prop('checked', false);
+                            $('#mouthH').prop('checked', false);
+                            $('#mouthN').prop('checked', false);
+                        }
+                    }
+                
+
+                }
+            }
+        });
+    }
+</script>

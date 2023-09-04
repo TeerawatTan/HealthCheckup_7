@@ -1,0 +1,150 @@
+﻿@page
+@model HelpCheck_Web.Pages.IndexModel
+@{
+    ViewData["Title"] = "Login";
+    Layout = "_Layout_auth";
+}
+
+@Html.AntiForgeryToken()
+<head>
+    <link href="~/main.css" rel="stylesheet">
+    <script src="~/js/jquery-3.6.0.js"></script>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.10.19/css/jquery.dataTables.min.css" />
+    @*<script src="https://code.jquery.com/jquery-3.3.1.js"></script>*@
+    <script src="https://cdn.datatables.net/1.10.19/js/jquery.dataTables.min.js"></script>
+</head>
+
+<style>
+    .login-form {
+        border: none;
+        border-bottom: 2px solid #E9E9F0 !important;
+        background-color: transparent !important;
+        color: #648D82;
+    }
+</style>
+<div class="row">
+    <div class="col-md-3 col-sm-3 app-header-left" style="text-align:center;">
+        <img src="~/assets/images/health_care_icon_for_doctors_team_slide01.png" height="320px;" width="300px;" />
+    </div>
+    <div class="col-md-9 col-sm-3 app-header-right">    
+        <form class="col-md-8 col-sm-3" method="post" asp-page="Index">
+            <div class="text-center">
+                <img src="~/assets/images/phra_mongkut_klao_hospital.png" height="150px;" width="150px;" />
+                <br />
+                <h4 style="color:#308B57">โรงพยาบาลพระมงกุฏเกล้า</h4>
+                <br /><br />
+                <h4 style="color:dimgray">ลงชื่อเข้าใช้งาน</h4>
+                <br />
+            </div>
+            <div class="position-relative form-group">
+                @*<label for="exampleEmail" class="">ชื่อผู้ใช้</label>*@
+                <input name="username" id="exampleEmail" placeholder="อีเมล/เบอร์โทรศัพท์/เลข HN/เลขบัตรประชาชน" type="text" class="form-control login-form">
+            </div>
+            <div class="position-relative form-group">
+                @*<label for="examplePassword" class="">รหัสผ่าน</label>*@
+                <input name="password" id="examplePassword" placeholder="รหัสผ่าน" type="password" class="form-control  login-form" >
+            </div>
+            <div>
+                <button type="button" class="mt-1 btn btn-primary" style="font-size:medium;" onclick="onSave()" id="myBtn">ลงชื่อเข้าใช้งาน</button>
+            </div>
+             <div style="margin-top:1rem;">
+                <a href="~/Authen/Register" style="color:red;font-size: 18px;">สมัครสมาชิกสำหรับผู้ป่วย</a>
+            </div>
+            <div style="margin-top:1rem;">
+                <a href="~/Authen/ForgotPassword" style="font-size: 18px;">ลืมรหัสผ่าน</a>
+            </div>
+        </form>
+    </div>
+</div>
+<div class="modal fade" id="exampleModalCenter" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLongTitle" style="font-weight:bold;font-size:28px">ประกาศ</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body" style="text-align: center; font-size: 28px;">
+                เว็บไซต์กำลังปรับปรุงสามารถใช้งานได้ในวันที่ 5 สิงหาคม 2566 ขออภัยในความไม่สะดวก
+            </div>
+            <div class="modal-footer">
+                <button type="button"  class="btn btn-primary" data-dismiss="modal">ตกลง</button>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal fade bg-dark" id="userAgreementModal" tabindex="-1" data-backdrop="static" data-keyboard="false"
+     role="dialog">
+    <div class="vertical-alignment-helper">
+        <div class="modal-dialog vertical-align-center">
+            <div class="modal-content" style="width:82%">
+                <div class="modal-header">
+                    <h3 class="modal-title" id="userAgreementModalLabel" style="font-weight:bold;font-size:28px">
+                        ประกาศ
+                    </h3>
+                </div>
+                <div class="modal-body" style="text-align: center; font-size: 28px;">
+                         เว็บไซต์กำลังปรับปรุงสามารถใช้งานได้ในวันที่ 5 สิงหาคม 2566 ขออภัยในความไม่สะดวก
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" data-dismiss="modal"
+                            style="text-align: center; font-size: 28px;">
+                        ตกลง
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    var input = document.getElementById("examplePassword");
+    input.addEventListener("keypress", function (event) {
+        if (event.key === "Enter") {
+            event.preventDefault();
+            document.getElementById("myBtn").click();
+        }
+    });
+    $(document).ready(function () {
+        
+        
+    });
+    //function onSave() {
+    //    $("#exampleModalCenter").modal()
+    //}
+    function onSave() {
+        let data = {
+            "Username": $('#exampleEmail').val(),
+            "Password": $('#examplePassword').val()
+        };
+        $.ajax({
+            type: 'POST',
+            url: '/Index',
+            headers: {
+                RequestVerificationToken:
+                    $('input:hidden[name="__RequestVerificationToken"]').val()
+            },
+            contentType: 'application/json; charset=utf-8',
+            dataType: 'json',
+            data: JSON.stringify(data),
+            success: function (response) {
+                if (response != 'error') {
+                    if (response === '/Privacy') {
+                        window.location.href = '/Authen/Logout'
+                    } else {
+                        window.location.href = response;
+                    }
+                } else {
+                    alert("เกิดข้อผิดพลาดบางอย่าง เข้าสู่ระบบไม่สำเร็จ");
+                    return;
+                }
+            },
+            error: function () {
+                alert("เกิดข้อผิดพลาดบางอย่าง เข้าสู่ระบบไม่สำเร็จ");
+                return;
+            }
+        });
+    }
+</script>

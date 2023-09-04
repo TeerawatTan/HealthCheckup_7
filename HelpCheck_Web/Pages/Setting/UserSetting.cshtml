@@ -1,0 +1,476 @@
+﻿@page
+@model HelpCheck_Web.Pages.Setting.UserSettingModel
+@{
+    ViewData["Title"] = "ข้อมูลผู้ใช้งาน";
+    ViewData["useMenu"] = "yes";
+}
+@Html.AntiForgeryToken()
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title></title>
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.10.19/css/jquery.dataTables.min.css" />
+    @*<script src="https://code.jquery.com/jquery-3.3.1.js"></script>*@
+    <script src="https://cdn.datatables.net/1.10.19/js/jquery.dataTables.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            var table = $('#example').DataTable();
+            $('#example tbody').on('click', 'tr', function () {
+                if ($(this).hasClass('selected')) {
+                    $(this).removeClass('selected');
+                }
+                else {
+                    table.$('tr.selected').removeClass('selected');
+                    $(this).addClass('selected');
+                    $(this).addClass('selected').siblings().removeClass('selected');
+                    var userid = $(this).find('td:first').attr('id');
+                    var titleId = $(this).find('td:eq(1)').attr('id');
+                    var firstname = $(this).find('td:eq(2)').html();
+                    var lastname = $(this).find('td:eq(3)').html();
+                    var idcard = $(this).find('td:eq(4)').html();
+                    var bDate = $(this).find('td:eq(5)').html();
+                    var genderid = $(this).find('td:eq(7)').attr('id');
+                    var agency = $(this).find('td:eq(8)').html();
+                    var workplaceID = $(this).find('td:eq(9)').attr('id');
+                    var jobtypeID = $(this).find('td:eq(10)').attr('id');
+                    var phone = $(this).find('td:eq(11)').html();
+                    if (bDate != " ") {
+                        var from = bDate.split("-")
+                        var year = parseInt(from[2])
+                        if (year > 2500) {
+                            year = year - 543;
+                        }
+                        var day = from[0];
+                        var f = year + "-" + from[1] + "-" + day;
+                        document.getElementById('birthdateId').value = f;
+                    }
+                    document.getElementById('ddTitleId').value = titleId;
+                    document.getElementById('firstnameId').value = firstname;
+                    document.getElementById('lastnameId').value = lastname;
+                    document.getElementById('identitycardId').value = idcard;
+                    if (genderid == 0) {
+                        $("#genderM").prop("checked", true);
+                    }
+                    else {
+                        $("#genderY").prop("checked", true);
+                    }
+                    document.getElementById('agencyId').value = agency;
+                    document.getElementById('ddWorkPlaceId').value = workplaceID;
+                    document.getElementById('ddJobTypeId').value = jobtypeID;
+                    document.getElementById('phoneNoId').value = phone;
+
+                    document.getElementById('edit').value = userid;
+                    document.getElementById('delete').value = userid;
+                    
+                }
+                $('#event-modal').modal('show');
+            });
+
+            var table = $('#myTable').DataTable();
+            var buttons = new $.fn.dataTable.Buttons(table, {
+                buttons: [
+                    'copyHtml5',
+                    'excelHtml5',
+                    'csvHtml5',
+                    'pdfHtml5'
+                ]
+            }).container().appendTo($('#buttons'));
+        });
+    </script>
+    <script>
+        function onSave() {
+            let data = {
+                'titleID': $("#ddTitleId").find("option:selected").val(),
+                'firstName': $("#firstnameId").val(),
+                'lastname': $("#lastnameId").val(),
+                'idCard': $("#identitycardId").val(),
+                'birthDate': $("#birthdateId").val(),
+                'gender': $("#gender input:checked").val(),
+                'agency': $("#agencyId").val(),
+                'workPlaceID': $("#ddWorkPlaceId").find("option:selected").val(),
+                'jobTypeID': $("#ddJobTypeId").find("option:selected").val(),
+                'phoneNo': $("#phoneNoId").val(),
+            };
+
+            $.ajax({
+                type: 'POST',
+                url: '/Setting/UserProfile',
+                headers: {
+                    RequestVerificationToken:
+                        $('input:hidden[name="__RequestVerificationToken"]').val()
+                },
+                contentType: 'application/json; charset=utf-8',
+                dataType: 'json',
+                data: JSON.stringify(data),
+                success: function (response) {
+                    if (response === 'success') {
+                        alert("บันทึกแล้ว");
+                        window.location.reload();
+                    } else {
+                        alert("เกิดข้อผิดพลาด บันทึกไม่สำเร็จ");
+                    }
+                }
+            });
+        }
+        function getEdit() {
+            let data = {
+                'userID': document.getElementById('edit').value,
+                'titleID': $("#ddTitleId").find("option:selected").val(),
+                'firstName': $("#firstnameId").val(),
+                'lastname': $("#lastnameId").val(),
+                'birthDate': $("#birthdateId").val().toString('yyyy-MM-dd'),
+                'gender': $("#gender input:checked").val(),
+                'agency': $("#agencyId").val(),
+                'workPlaceID': $("#ddWorkPlaceId").find("option:selected").val(),
+                'jobTypeID': $("#ddJobTypeId").find("option:selected").val(),
+                'phoneNo': $("#phoneNoId").val(),
+                'hn': "string"
+            };
+
+            $.ajax({
+                type: 'POST',
+                url: '/Setting/UserSetting?handler=Edit',
+                headers: {
+                    RequestVerificationToken:
+                        $('input:hidden[name="__RequestVerificationToken"]').val()
+                },
+                contentType: 'application/json; charset=utf-8',
+                dataType: 'json',
+                data: JSON.stringify(data),
+                success: function (response) {
+                    if (response === 'success') {
+                        document.getElementById('headerSave').innerHTML = 'ผลการแก้ไขข้อมูล'
+                        document.getElementById('bodySave').innerHTML = 'แก้ไขข้อมูลสำเร็จ'
+                        $('#event-modal-save').modal('show');
+                        $('#event-modal').modal('hide');
+                    } else {
+                        alert("เกิดข้อผิดพลาด บันทึกไม่สำเร็จ");
+                    }
+                }
+            });
+        }
+        function getDelete() {
+            let data = {
+                'id': $('#delete').val(),
+            }
+            $.ajax({
+                type: 'POST',
+                url: '/Setting/UserSetting?handler=Delete',
+                headers: {
+                    RequestVerificationToken:
+                        $('input:hidden[name="__RequestVerificationToken"]').val()
+                },
+                contentType: 'application/json; charset=utf-8',
+                dataType: 'json',
+                data: JSON.stringify(data),
+                success: function (response) {
+                    if (response === 'success') {
+                        document.getElementById('headerSave').innerHTML = 'ผลการลบข้อมูล'
+                        document.getElementById('bodySave').innerHTML = 'ลบข้อมูลสำเร็จ'
+                        $('#event-modal-save').modal('show');
+                        $('#event-modal').modal('hide');
+                        /*window.location.reload();*/
+                    } else {
+                        alert("เกิดข้อผิดพลาด ลบไม่สำเร็จ");
+                    }
+                }
+            });
+        }
+        function getCancle() {
+            document.getElementById('delete').disabled = true;
+            document.getElementById('edit').disabled = true;
+            document.getElementById('cancelbtn').disabled = false;
+        }
+        $('#event-modal-save').on('hidden.bs.modal', function () {
+            $('#event-modal').modal('hide');
+            window.location.reload();
+            
+        })
+        $('#event-modal').on('hidden.bs.modal', function () {
+            window.location.reload();
+
+        })
+    </script>
+
+</head>
+<body>
+    <div class="setting-wrapper col-md-12">
+        <form class="setting-form" method="post">
+            <div class="form-search-wrapper">
+                <div class="setting-title">
+                    <p>ข้อมูลผู้ใช้งาน</p>
+                </div>
+            </div>
+            @*<div class="form-search-wrapper">
+                <div class="setting-title">
+                    <p>ข้อมูลผู้ใช้งาน</p>
+                </div>
+                <div class="form-group">
+                    <p>คำนำหน้า</p>
+                    <select id="ddTitleId" name="ddTitle" class="form-control dropdown-item">
+                        <option value="0">เลือก</option>
+                        @foreach (var ph in Model.Titles)
+                        {
+                            <option value="@ph.ID">@ph.Name</option>
+                        }
+                    </select>
+                </div>
+                <div class="form-group">
+                    <p>ชื่อ</p>
+                    <input type="text" name="firstName" placeholder="กรุณากรอกข้อมูลชื่อ" class="form-control"
+                           id="firstnameId">
+                </div>
+                <div class="form-group">
+                    <p>นามสกุล</p>
+                    <input type="text" name="lastName" placeholder="กรุณากรอกข้อมูลนามสกุล" class="form-control"
+                           id="lastnameId">
+                </div>
+                <div class="form-group">
+                    <p>เลขบัตรประจำตัวประชาชน</p>
+                    <input type="text" name="idCard" placeholder="กรุณากรอกข้อมูลเลขบัตรประจำตัวประชาชน"
+                           class="form-control" id="identitycardId" maxlength="13" disabled>
+                </div>
+                <div class="form-group">
+                    <p>วันเดือนปีเกิด</p>
+                    <input type="date" name="birthDate" class="form-control" id="birthdateId">
+                </div>
+                <div class="form-group" id="gender">
+                    <p>เพศ</p>
+                    <input type="radio" name="gender" class="form-check-input" id="genderM" style="margin: 3px 0 0 0;position: unset;" value="0" />
+                    <span> ชาย </span>
+                    <input type="radio" name="gender" class="form-check-input" id="genderY" style="margin: 3px 0 0 0;position: unset;" value="1" />
+                    <span> หญิง </span>
+                </div>
+                <div class="form-group">
+                    <p>หน่วยงานต้นสังกัด</p>
+                    <input type="text" name="agency" placeholder="กรุณากรอกข้อมูล" class="form-control" id="agencyId">
+                </div>
+                <div class="form-group">
+                    <p>ที่ทำงาน</p>
+                    <select id="ddWorkPlaceId" name="ddWorkPlace" class="form-control dropdown-item">
+                        <option value="0">เลือก</option>
+                        @foreach (var ph in Model.WorkPlaces)
+                        {
+                            <option value="@ph.ID">@ph.Name</option>
+                        }
+                    </select>
+                </div>
+                <div class="form-group">
+                    <p>ประเภท</p>
+                    <select id="ddJobTypeId" name="ddJobType" class="form-control dropdown-item">
+                        <option value="0">เลือก</option>
+                        @foreach (var ph in Model.JobTypes)
+                        {
+                            <option value="@ph.ID">@ph.Name</option>
+                        }
+                    </select>
+                </div>
+                <div class="form-group">
+                    <p>เบอร์โทรศัพท์</p>
+                    <input type="text" name="input" placeholder="กรุณากรอกข้อมูล" class="form-control" id="phoneNoId">
+                </div>
+            </div>
+            <div class="detail-button-wrapper d-flex justify-content-center align-items-center">
+                <button class="detail-button bg-green btn-border-green d-flex justify-content-center align-items-center"
+                        style="font-size:medium;border:none;" type="button" onclick="getEdit()" id="edit">
+                    แก้ไข
+                </button>
+                <button class="detail-button btn-border-green d-flex justify-content-center align-items-center"
+                        style="font-size: medium; border: none; background-color: #FF4141;color:white" type="button" id="delete" onclick="getDelete()">
+                    ลบ
+                </button>
+                <div class="detail-button bg-gray d-flex justify-content-center align-items-center" id="cancelbtn" onclick="getCancle()">
+                    <p>ยกเลิก</p>
+                </div>
+                <input id="h_input_id" value="" hidden="hidden" />
+            </div>*@
+            <table id="example" class="display" style="width:100%">
+                <thead>
+                    <tr>
+                        <th style="text-align:center">ID</th>
+                        <th style="text-align:center">ยศ</th>
+                        <th style="text-align:center">ชื่อ</th>
+                        <th style="text-align:center">นามสกุล</th>
+                        <th style="text-align:center">เลขประจำตัวประชาชน</th>
+                        <th style="text-align:center">วัน/เดือน/ปีเกิด</th>
+                        <th style="text-align:center">อายุ</th>
+                        <th style="text-align:center">เพศ</th>
+                        <th style="text-align:center">หน่วยงานต้นสังกัด</th>
+                        <th style="text-align:center">ที่ทำงาน</th>
+                        <th style="text-align:center">ประเภท</th>
+                        <th style="text-align:center">เบอร์โทรศัพท์</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var ph in Model.Userd)
+                    {
+                        <tr>
+                            <td style="text-align:center" id="@ph.UserID">@ph.ID</td>
+                            <td style="text-align:center" id="@ph.TitleID">@ph.TitleName</td>
+                            <td style="text-align:center">@ph.FirstName</td>
+                            <td style="text-align:center">@ph.LastName</td>
+                            <td style="text-align:center">@ph.IDCard</td>
+                            <td style="text-align:center">@ph.BirthDateStr</td>
+                            <td style="text-align:center">@ph.Age</td>
+                            @*<td style="text-align:center" id="@ph.Gender">@ph.GenderName</td>*@
+                            <td style="text-align:center" id="@ph.Gender">@(ph.Gender.HasValue ? ph.Gender.Value == 0 ? "ชาย" : "หญิง" : "")</td>
+                            <td style="text-align:center">@ph.Agency</td>
+                            <td style="text-align:center" id="@ph.WorkPlaceID">@ph.WorkPlaceName</td>
+                            <td style="text-align:center" id="@ph.JobTypeID">@ph.JobTypeName</td>
+                            <td style="text-align:center">@ph.PhoneNo</td>
+                        </tr>
+                    }
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <th>ID</th>
+                        <th>ยศ</th>
+                        <th>ชื่อ</th>
+                        <th>นามสกุล</th>
+                        <th>เลขประจำตัวประชาชน</th>
+                        <th>วัน/เดือน/ปีเกิด</th>
+                        <th>อายุ</th>
+                        <th>เพศ</th>
+                        <th>หน่วยงานต้นสังกัด</th>
+                        <th>ที่ทำงาน</th>
+                        <th>ประเภท</th>
+                        <th>เบอร์โทรศัพท์</th>
+                    </tr>
+                </tfoot>
+            </table>
+
+        </form>
+        <div class="modal " id="event-modal" tabindex="0" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" style="margin:auto">
+            <div class="modal-dialog" style="margin:100px auto auto auto;width:auto;max-width:900px">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h4 class="modal-title" id="header">แก้ไขข้อมูลผู้ใช้งาน</h4>
+                        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                    </div>
+                    <div class="modal-body">
+                        <form name="save-event" method="post">
+                            <div class="form-search-wrapper">
+                                <div class="setting-title">
+                                    <p>ข้อมูลผู้ใช้งาน</p>
+                                </div>
+                                <div class="form-group">
+                                    <p>คำนำหน้า</p>
+                                    <select id="ddTitleId" name="ddTitle" class="form-control dropdown-item">
+                                        <option value="0">เลือก</option>
+                                        @foreach (var ph in Model.Titles)
+                                        {
+                                            <option value="@ph.ID">@ph.Name</option>
+                                        }
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <p>ชื่อ</p>
+                                    <input type="text" name="firstName" placeholder="กรุณากรอกข้อมูลชื่อ" class="form-control"
+                                           id="firstnameId">
+                                </div>
+                                <div class="form-group">
+                                    <p>นามสกุล</p>
+                                    <input type="text" name="lastName" placeholder="กรุณากรอกข้อมูลนามสกุล" class="form-control"
+                                           id="lastnameId">
+                                </div>
+                                <div class="form-group">
+                                    <p>เลขบัตรประจำตัวประชาชน</p>
+                                    <input type="text" name="idCard" placeholder="กรุณากรอกข้อมูลเลขบัตรประจำตัวประชาชน"
+                                           class="form-control" id="identitycardId" maxlength="13" disabled>
+                                </div>
+                                <div class="form-group">
+                                    <p>วันเดือนปีเกิด</p>
+                                    <input type="date" name="birthDate" class="form-control" id="birthdateId">
+                                </div>
+                                <div class="form-group" id="gender">
+                                    <p>เพศ</p>
+                                    <input type="radio" name="gender" class="form-check-input" id="genderM" style="margin: 3px 0 0 0;position: unset;" value="0" />
+                                    <span> ชาย </span>
+                                    <input type="radio" name="gender" class="form-check-input" id="genderY" style="margin: 3px 0 0 0;position: unset;" value="1" />
+                                    <span> หญิง </span>
+                                </div>
+                                <div class="form-group">
+                                    <p>หน่วยงานต้นสังกัด</p>
+                                    <input type="text" name="agency" placeholder="กรุณากรอกข้อมูล" class="form-control" id="agencyId">
+                                </div>
+                                <div class="form-group">
+                                    <p>ที่ทำงาน</p>
+                                    <select id="ddWorkPlaceId" name="ddWorkPlace" class="form-control dropdown-item">
+                                        <option value="0">เลือก</option>
+                                        @foreach (var ph in Model.WorkPlaces)
+                                        {
+                                            <option value="@ph.ID">@ph.Name</option>
+                                        }
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <p>ประเภท</p>
+                                    <select id="ddJobTypeId" name="ddJobType" class="form-control dropdown-item">
+                                        <option value="0">เลือก</option>
+                                        @foreach (var ph in Model.JobTypes)
+                                        {
+                                            <option value="@ph.ID">@ph.Name</option>
+                                        }
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <p>เบอร์โทรศัพท์</p>
+                                    <input type="text" name="input" placeholder="กรุณากรอกข้อมูล" class="form-control" id="phoneNoId">
+                                </div>
+                            </div>
+                            <div class="detail-button-wrapper d-flex justify-content-center align-items-center">
+                                <button class="detail-button bg-green btn-border-green d-flex justify-content-center align-items-center"
+                                        style="font-size:medium;border:none;" type="button" onclick="getEdit()" id="edit">
+                                    แก้ไข
+                                </button>
+                                <button class="detail-button btn-border-green d-flex justify-content-center align-items-center"
+                                        style="font-size: medium; border: none; background-color: #FF4141;color:white" type="button" id="delete" onclick="getDelete()">
+                                    ลบ
+                                </button>
+                                <div class="detail-button bg-gray d-flex justify-content-center align-items-center" id="cancelbtn" onclick="getCancle()">
+                                    <p>ยกเลิก</p>
+                                </div>
+                                <input id="h_input_id" value="" hidden="hidden" />
+                            </div>
+
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">ปิด</button>
+                    </div>
+                </div>
+                <!-- /.modal-content -->
+            </div>
+            <!-- /.modal-dialog -->
+        </div>
+        <div class="modal " id="event-modal-save" tabindex="0" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" style="margin:auto">
+            <div class="modal-dialog" style="margin:100px auto auto auto;width:auto;max-width:900px">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h4 class="modal-title" id="headerSave">ผลการบันทึก</h4>
+                        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                    </div>
+                    <div class="modal-body">
+                        <form name="save-event" method="post">
+                            <div class="form-group">
+                                <label id="bodySave">บันทึกสำเร็จ</label>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal" >ปิด</button>
+                    </div>
+                </div>
+                @*/.modal-content*@
+            </div>
+            @*/.modal-dialog*@
+        </div>
+    </div>
+</body>
+
+
+
+</html>
+
+

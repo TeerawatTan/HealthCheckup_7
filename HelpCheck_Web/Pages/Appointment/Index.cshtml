@@ -1,0 +1,956 @@
+﻿@page
+@model HelpCheck_Web.Pages.Appointment.IndexModel
+@{
+    ViewData["Title"] = "ตารางนัดตรวจ";
+    ViewData["useMenu"] = "yes";
+}
+
+@Html.AntiForgeryToken()
+<script type="text/javascript" src="//unpkg.com/xlsx/dist/xlsx.full.min.js"></script>
+<style>
+    .button { /* Green */
+        border: none;
+        color: white;
+        padding: 10px;
+        text-align: center;
+        text-decoration: none;
+        display: inline-block;
+        font-size: 16px;
+        margin: 4px 2px;
+        cursor: pointer;
+        width: 100px;
+    }
+
+    .button3 {
+        border-radius: 8px;
+    }
+
+</style>
+<div style="float:right;flex-wrap:nowrap;align-items:center" class="row">
+    <button type="button" class="btn btn-default button3 button" style="background-color: #04AA6D" onclick="reportShow()">Report Menu</button>
+</div>
+
+<div class="row container m-bt-20">
+    <!-- Trigger the modal with a button -->
+    <div style="padding-right: 150px;">
+        <button type="button" class="btn btn-default button3 button" style="background-color: #04AA6D" id="myBtn">สร้าง</button>
+    </div>
+
+    <!-- Modal -->
+    <div class="modal fade position-t15" id="myModal" role="dialog">
+        <div class="modal-dialog">
+
+            <!-- Modal content-->
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title" id="header">สร้างตารางนัดหมาย</h4>
+                    <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                </div>
+                <div class="modal-body" style="padding:40px 50px;">
+                    <form role="form">
+                        <div class="form-group">
+                            <label for="">วันที่</label>
+                            <input type="date" asp-for="@Model.AppointmentDto.AppointmentDate" class="form-control" id="appointment-date-id">
+                        </div>
+                        <div class="form-group">
+                            <label for="">ช่วงเวลาเริ่ม</label>
+                            <input type="time" asp-for="@Model.AppointmentDto.AppointmentTimeStart.Value.LocalDateTime" class="form-control" id="appointment-time-start-id" value="hh:mm">
+                        </div>
+                        <div class="form-group">
+                            <label for="">ถึง</label>
+                            <input type="time" asp-for="@Model.AppointmentDto.AppointmentTimeEnd" class="form-control" id="appointment-time-end-id">
+                        </div>
+                        <div class="form-group">
+                            <label for="">จำนวนเข้ารับตรวจ</label>
+                            <input type="number" min="0" value="0" asp-for="@Model.AppointmentDto.MaximumPatient" class="form-control" id="maximum-patient-id">
+                        </div>
+                        <button type="button" class="btn btn-success btn-block" onclick="onSaveAppointmentSetting()">Save</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal fade position-t15" id="myModalEdit" role="dialog">
+        <div class="modal-dialog">
+
+            <!-- Modal content-->
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title" id="header">สร้างตารางนัดหมาย</h4>
+                    <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                </div>
+                <div class="modal-body" style="padding:40px 50px;">
+                    <form role="form">
+                        <div class="form-group">
+                            <label for="">วันที่</label>
+                            <input type="date" asp-for="@Model.AppointmentDto.AppointmentDate" class="form-control" id="appointment-date-id-Edit" disabled>
+                        </div>
+                        <div class="form-group">
+                            <label for="">ช่วงเวลาเริ่ม</label>
+                            <input type="time" asp-for="@Model.AppointmentDto.AppointmentTimeStart.Value.LocalDateTime" class="form-control" id="appointment-time-start-id-Edit" value="hh:mm">
+                        </div>
+                        <div class="form-group">
+                            <label for="">ถึง</label>
+                            <input type="time" asp-for="@Model.AppointmentDto.AppointmentTimeEnd" class="form-control" id="appointment-time-end-id-Edit">
+                        </div>
+                        <div class="form-group">
+                            <label for="">จำนวนเข้ารับตรวจ</label>
+                            <input type="number" min="0" class="form-control" id="booking-Edit" disabled hidden>
+                            <input type="number" min="0" asp-for="@Model.AppointmentDto.MaximumPatient" class="form-control" id="maximum-Edit">
+                        </div>
+                        <button type="button" class="btn btn-success btn-block" onclick="getEdit()" id="btnEdit">Edit</button>
+                        <button type="button" class="btn btn-warning btn-block" onclick="getDelete()" id="btnDelete">Delete</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal " id="event-modal-save" tabindex="0" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" style="margin:auto">
+    <div class="modal-dialog" style="margin:100px auto auto auto;width:auto;max-width:900px">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="header">ผลการบันทึก</h4>
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+            </div>
+            <div class="modal-body">
+                <form name="save-event" method="post">
+                    <div class="form-group">
+                        <label id="bodySave">บันทึกสำเร็จ</label>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">ปิด</button>
+            </div>
+        </div>
+        @*/.modal-content*@
+    </div>
+    @*/.modal-dialog*@
+</div>
+<div class="row">
+    <div class="col-md-12">
+        <div class="main-card mb-3 card">
+            <div class="card-body">
+                <div id="calendar"></div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal " id="event-modal-report" tabindex="0" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" style="margin:auto">
+    <div class="modal-dialog" style="margin:100px auto auto auto;width:auto;max-width:900px">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="header">Report Menu</h4>
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+            </div>
+            <div class="modal-body">
+                <form name="save-event" method="post">
+                    <div style="flex-wrap:nowrap;align-items:center" class="row">
+                        <p style="width: auto;font-size: 16px;margin: 10px;">1.รายงานคำตอบ ปี ค.ศ.ที่ต้องการ Downlond คำตอบ</p>
+                        <select type="text" id="yearSelector" class="form-control" style="width:100px">
+                        </select>
+                        <button type="button" class="btn btn-default button3 button" style="background-color: #04AA6D" id="DownloadAnwser" onclick="Download1()">Anwser</button>
+                    </div>
+                    <br />
+                    <div style="flex-wrap:nowrap;align-items:center" class="row">
+                        <p style="width: auto;font-size: 16px;margin: 10px;">2.รายงานการจองรายวัน วันที่ที่ต้องการ Downlond Report</p>
+                        <input type="date" id="Date" class="form-control" style="width:150px" />
+                        <button type="button" class="btn btn-default button3 button" style="background-color: #04AA6D" id="DownloadReportApp" onclick="Download2()">Report App</button>
+                    </div>
+                    <br />
+                    <div style="flex-wrap:nowrap;align-items:center" class="row">
+                        <p style="width: auto;font-size: 16px;margin: 10px;">3.รายงานประจำวัน วันที่ที่ต้องการ Downlond Report</p>
+                        <input type="date" id="Datereport" class="form-control" style="width:150px" />
+                        <button type="button" class="btn btn-default button3 button" style="background-color: #04AA6D" id="DownloadReportApp" onclick="DownloadDailyReport()">Report Daily</button>
+                    </div>
+                    <br />
+                    <div style="flex-wrap:nowrap;align-items:center" class="row">
+                        <p style="width: auto;font-size: 16px;margin: 10px;">4.รายงานจิตแพทย์ วันที่ที่ต้องการ Downlond Report</p>
+                        <input type="date" id="DatePsych" class="form-control" style="width:150px" />
+                        <button type="button" class="btn btn-default button3 button" style="background-color: #04AA6D" id="DownloadReportApp" onclick="DownloadPsych()">Report Psych</button>
+                    </div>
+                    <br />
+                    <div style="flex-wrap:nowrap;align-items:center" class="row">
+                        <p style="width: auto;font-size: 16px;margin: 10px;">5.รายงานประจำปี ทันตแพทย์ </p>
+                        <button type="button" class="btn btn-default button3 button" style="background-color: #04AA6D" id="DownloadReportApp" onclick="DownloadDentist()">Report Dent</button>
+                    </div>
+                    <div style="flex-wrap:nowrap;align-items:center" class="row">
+                        <p style="width: auto;font-size: 16px;margin: 10px;">6.รายงานประจำปี</p>
+                        <button type="button" class="btn btn-default button3 button" style="background-color: #04AA6D" id="DownloadReportApp" onclick="DownloadAll()">Report All</button>
+                    </div>
+                    <br />
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">ปิด</button>
+            </div>
+        </div>
+        @*/.modal-content*@
+    </div>
+    @*/.modal-dialog*@
+</div>
+<div class="modal " id="event-modal-load" tabindex="0" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" style="margin:auto">
+    <div class="modal-dialog" style="margin:100px auto auto auto;width:auto;max-width:900px">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="header">Report Menu</h4>
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+            </div>
+            <div class="modal-body">
+                <div style="text-align:center;font-size:large;font-weight:bold" id="pagetotalstd">
+
+                </div>
+                <form name="save-event" method="post">
+                    <div class="loader" id="myDIV"></div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">ปิด</button>
+            </div>
+        </div>
+        @*/.modal-content*@
+    </div>
+    @*/.modal-dialog*@
+</div>
+<div class="modal " id="event-modal-load-All" tabindex="0" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" style="margin:auto">
+    <div class="modal-dialog" style="margin:100px auto auto auto;width:auto;max-width:900px">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="header">Report Menu</h4>
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+            </div>
+            <div class="modal-body">
+                <form name="save-event" method="post">
+                    <div style="text-align:center;font-size:large;font-weight:bold" id="pagetotal">
+
+                    </div>
+                    <div class="loader" id="myDIVs"></div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">ปิด</button>
+            </div>
+        </div>
+        @*/.modal-content*@
+    </div>
+    @*/.modal-dialog*@
+</div>
+<script src="~/js/moment.min.js"></script>
+<script>
+    function makeRequest(method, reqestUrl, data) {
+        return $.ajax({
+            type: method,
+            url: 'https://healthcheckup1.pmk.ac.th' + reqestUrl,
+            contentType: "application/json",
+            dataType: "json",
+            data: data ? JSON.stringify(data) : null
+        })
+    }
+    $('#event-modal-save').on('hidden.bs.modal', function () {
+        $('#event-modal').modal('hide');
+        window.location.reload();
+
+    })
+
+    function Download1() {
+        document.getElementById('pagetotalstd').innerHTML = ""
+        document.getElementById("myDIV").style.display = "block";
+        $('#event-modal-load').modal('show');
+        let year = parseInt($('#yearSelector').val());
+        let fileName = `AllAnswer.xlsx`
+        $.ajax({
+            type: 'GET',
+            url: '/Appointment/Index?handler=DownloadFileAnswer',
+            data: { "year": year },
+            success: function (data) {
+                $('#event-modal').modal('hide');
+                document.getElementById('pagetotalstd').innerHTML = "download file เสร็จสิ้น"
+                document.getElementById("myDIV").style.display = "none";
+                var createXLSLFormatObj = [];
+                /* XLS Head Columns */
+                var xlsHeader = ["memberName", "memberIdCard", "memberHn", "questionName", "choiceName", "asnwerKeyIn"];
+
+                /* XLS Rows Data */
+                var xlsRows = data
+
+
+                createXLSLFormatObj.push(xlsHeader);
+                $.each(xlsRows, function (index, value) {
+                    var innerRowData = [];
+                    $.each(value, function (ind, val) {
+
+                        innerRowData.push(val);
+                    });
+                    createXLSLFormatObj.push(innerRowData);
+                });
+
+
+                /* File Name */
+                var filename = "AllAnwser.xlsx";
+
+                /* Sheet Name */
+                var ws_name = "AllAnwser";
+
+                if (typeof console !== 'undefined') console.log(new Date());
+                var wb = XLSX.utils.book_new(),
+                    ws = XLSX.utils.aoa_to_sheet(createXLSLFormatObj);
+
+                /* Add worksheet to workbook */
+                XLSX.utils.book_append_sheet(wb, ws, ws_name);
+
+                /* Write workbook and Download */
+                if (typeof console !== 'undefined') console.log(new Date());
+                XLSX.writeFile(wb, filename);
+                if (typeof console !== 'undefined') console.log(new Date());
+                console.log(data);
+            },
+            error: function (err) {
+                $('#event-modal').modal('hide');
+                alert('ไม่มีข้อมูล ในวันที่เลือก')
+                console.log(err);
+            }
+        });
+    }
+
+    function Download2() {
+        document.getElementById('pagetotalstd').innerHTML = ""
+        document.getElementById("myDIV").style.display = "block";
+        // -------------- ใส่ date ------------------
+        const date = new Date("2021-12-30");
+        // -----------------------------------------
+        var dates = document.getElementById("Date").value
+        $('#event-modal-load').modal('show');
+        $.ajax({
+            type: 'GET',
+            url: '/Appointment/Index?handler=DownloadApp',
+            data: { "date": dates },
+            success: function (data) {
+                $('#event-modal').modal('hide');
+                document.getElementById('pagetotalstd').innerHTML = "download file เสร็จสิ้น"
+                document.getElementById("myDIV").style.display = "none";
+                var createXLSLFormatObj = [];
+                /* XLS Head Columns */
+                var xlsHeader = ["เลขบัตรประชาชน", "Hn", "ชื่อ", "วันที่","เวลาเริ่ม","เวลาสิ้นสุด","ประเภทสิทธิ์","หน่วยงานสังกัด"];
+
+                /* XLS Rows Data */
+                var xlsRows = data
+
+                if (data != "error") {
+                    createXLSLFormatObj.push(xlsHeader);
+                    $.each(xlsRows, function (index, value) {
+                        var innerRowData = [];
+                        $.each(value, function (ind, val) {
+
+                            innerRowData.push(val);
+                        });
+                        createXLSLFormatObj.push(innerRowData);
+                    });
+
+
+                    /* File Name */
+                    var filename = "AllAppiontment" + dates +".xlsx";
+
+                    /* Sheet Name */
+                    var ws_name = "AllAppiontment";
+
+                    if (typeof console !== 'undefined') console.log(new Date());
+                    var wb = XLSX.utils.book_new(),
+                        ws = XLSX.utils.aoa_to_sheet(createXLSLFormatObj);
+
+                    /* Add worksheet to workbook */
+                    XLSX.utils.book_append_sheet(wb, ws, ws_name);
+
+                    /* Write workbook and Download */
+                    if (typeof console !== 'undefined') console.log(new Date());
+                    XLSX.writeFile(wb, filename);
+                    if (typeof console !== 'undefined') console.log(new Date());
+                    console.log(data);
+                }
+                else {
+                    alert('เกิดข้อผิดพลาด กรุณาลองใหม่')
+                }
+                
+                
+            },
+            error: function (err) {
+                $('#event-modal').modal('hide');
+                alert('ไม่มีข้อมูล ในวันที่เลือก')
+                console.log(err);
+            }
+        });
+
+        //return fetch(url, {
+        //    method: 'GET',
+        //    headers: {
+        //        'Authorization': `bearer ${token}`
+        //    }
+        //}).then(function (res) {
+        //    return res.blob();
+        //}).catch(function (err) {
+        //    console.log(err);
+        //});
+    }
+
+    function DownloadDailyReport() {
+        document.getElementById('pagetotalstd').innerHTML = ""
+        document.getElementById("myDIV").style.display = "block";
+        // -------------- ใส่ date ------------------
+        const date = "2565-08-03";
+        // -----------------------------------------
+        var dates = document.getElementById("Datereport").value
+        $('#event-modal-load').modal('show');
+        $.ajax({
+            type: 'GET',
+            url: '/Appointment/Index?handler=DownloadAppDaily',
+            data: { "date": dates },
+            success: function (data) {
+                $('#event-modal').modal('hide');
+                document.getElementById('pagetotalstd').innerHTML = "download file เสร็จสิ้น"
+                document.getElementById("myDIV").style.display = "none";
+                var createXLSLFormatObj = [];
+                /* XLS Head Columns */
+                var xlsHeader = ["วันที่", "จำนวนกำลังพลลงทะเบียน (รายวัน) ", "จำนวนกำลังพลเข้ารับบริการ (รายวัน)", "ยศ/คำนำหน้าชื่อ", "ชื่อ", "นามสกุล", "เลขประจำตัวประชาชน", "หน่วยงานสังกัด", "ตำแหน่ง", "อายุ", "เพศ (1 = ชาย , 2 = หญิง)", "การตอบแบบคัดกรองสุขภาพ", "การเข้ารับการคัดกรองพยาบาล", "น้ำหนัก", "ส่วนสูง", "BMI", "รอบเอว", "วัดความดันโลหิต", "การตรวจทันตกรรม", "การตรวจร่างการโดยแพทย์", "การตรวจเลือด", "การตรวจ Pap smear", "x-ray"];
+
+                /* XLS Rows Data */
+                var xlsRows = data
+
+                if (data != "error") {
+                    createXLSLFormatObj.push(xlsHeader);
+                    $.each(xlsRows, function (index, value) {
+                        var innerRowData = [];
+                        $.each(value, function (ind, val) {
+
+                            innerRowData.push(val);
+                        });
+                        createXLSLFormatObj.push(innerRowData);
+                    });
+
+
+                    /* File Name */
+                    var filename = "รายงานการตรวจสุขภาพประจำวันที่" + dates + ".xlsx";
+
+                    /* Sheet Name */
+                    var ws_name = "DailyHealthcheck" + dates;
+
+                    if (typeof console !== 'undefined') console.log(new Date());
+                    var wb = XLSX.utils.book_new(),
+                        ws = XLSX.utils.aoa_to_sheet(createXLSLFormatObj);
+
+                    /* Add worksheet to workbook */
+                    XLSX.utils.book_append_sheet(wb, ws, ws_name);
+
+                    /* Write workbook and Download */
+                    if (typeof console !== 'undefined') console.log(new Date());
+                    XLSX.writeFile(wb, filename);
+                    if (typeof console !== 'undefined') console.log(new Date());
+                    console.log(data);
+                }
+                else {
+                    alert('เกิดข้อผิดพลาด กรุณาลองใหม่')
+                }
+
+
+            },
+            error: function (err) {
+                $('#event-modal').modal('hide');
+                alert('ไม่มีข้อมูล ในวันที่เลือก')
+                console.log(err);
+            }
+        });
+
+        //return fetch(url, {
+        //    method: 'GET',
+        //    headers: {
+        //        'Authorization': `bearer ${token}`
+        //    }
+        //}).then(function (res) {
+        //    return res.blob();
+        //}).catch(function (err) {
+        //    console.log(err);
+        //});
+    }
+    let listPhych = []
+    function DownloadPsych() {
+        document.getElementById('pagetotalstd').innerHTML = ""
+        DownloadPsychPage(1);
+    }
+    function DownloadPsychPage(pagest) {
+        var dates = document.getElementById("DatePsych").value
+        $('#event-modal-load').modal('show');
+        document.getElementById("myDIV").style.display = "block";
+        $.ajax({
+            type: 'GET',
+            url: '/Appointment/Index?handler=DownloadPsych',
+            data: { "date": dates, "pagest": pagest},
+            success: function (data) {
+                document.getElementById('pagetotalstd').innerHTML = "กำลัง download file " + data.currentPage + " / " + data.totalPages + " หน้า"
+                if (data.currentPage == data.totalPages) {
+                    document.getElementById('pagetotalstd').innerHTML = "download file เสร็จสิ้น"
+                    document.getElementById("myDIV").style.display = "none";
+                    $.each(data.items, function (index, value) {
+                        var innerRowDatas = [];
+                        $.each(value, function (ind, val) {
+
+                            listPhych.push(val);
+                        });
+                    });
+                    var createXLSLFormatObj = [];
+                    /* XLS Head Columns */
+                    var xlsHeader = ["MemberID","ยศ", "ชื่อ", "นามสกุล", "Hn", "เลขประจำตัวประชาชน", "หน่วยงานสังกัด", "ตำแหน่ง", "อายุ", "เพศ (0 = ชาย , 1 = หญิง)", "ประเภทสิทธิ์", "2Q ข้อ1", "2Q ข้อ2", "9Q ข้อ1", "9Q ข้อ2", "9Q ข้อ3", "9Q ข้อ4", "9Q ข้อ5", "9Q ข้อ6", "9Q ข้อ7", "9Q ข้อ8", "9Q ข้อ9", "ผลรวมคะแนน 9Q"];
+
+                    /* XLS Rows Data */
+                    var xlsRows = listPhych
+
+                    if (data != "error") {
+                        createXLSLFormatObj.push(xlsHeader);
+                        $.each(xlsRows, function (index, value) {
+                            var innerRowData = [];
+                            $.each(value, function (ind, val) {
+
+                                innerRowData.push(val);
+                            });
+                            createXLSLFormatObj.push(innerRowData);
+                        });
+
+                        listPhych = []
+                    /* File Name */
+                    var filename = "รายงานการตรวจสุขภาพจิตประจำวันที่" + dates + ".xlsx";
+
+                    /* Sheet Name */
+                    var ws_name = "DailyPsych" + dates;
+
+                    if (typeof console !== 'undefined') console.log(new Date());
+                    var wb = XLSX.utils.book_new(),
+                        ws = XLSX.utils.aoa_to_sheet(createXLSLFormatObj);
+
+                    /* Add worksheet to workbook */
+                    XLSX.utils.book_append_sheet(wb, ws, ws_name);
+
+
+                    /* Write workbook and Download */
+                    if (typeof console !== 'undefined') console.log(new Date());
+                    XLSX.writeFile(wb, filename);
+                    if (typeof console !== 'undefined') console.log(new Date());
+                }
+                else {
+                    alert('เกิดข้อผิดพลาด กรุณาลองใหม่')
+                }
+                }else {
+                    pagest = pagest + 1;
+                    $.each(data.items, function (index, value) {
+                        var innerRowDatas = [];
+                        $.each(value, function (ind, val) {
+
+                            listPhych.push(val);
+                        });
+                    });
+                    DownloadPsychPage(pagest)
+                }
+                
+
+
+            },
+            error: function (err) {
+                $('#event-modal').modal('hide');
+                alert('ไม่มีข้อมูล ในวันที่เลือก')
+                console.log(err);
+            }
+        });
+        
+        //return fetch(url, {
+        //    method: 'GET',
+        //    headers: {
+        //        'Authorization': `bearer ${token}`
+        //    }
+        //}).then(function (res) {
+        //    return res.blob();
+        //}).catch(function (err) {
+        //    console.log(err);
+        //});
+    }
+    function getEdit() {
+        var x = document.getElementById('btnEdit').value
+        let appointmentDateTimeStart = new Date(moment($('#appointment-date-id-Edit').val()).format("yyyy-MM-DD") + " " + $('#appointment-time-start-id-Edit').val());
+        let appointmentDateTimeEnd = new Date(moment($('#appointment-date-id-Edit').val()).format("yyyy-MM-DD") + " " + $('#appointment-time-end-id-Edit').val());
+        let maxPatient = parseInt($('#maximum-Edit').val() ? $('#maximum-Edit').val() : 0);
+        var obj = {
+            'id': parseInt($('#btnEdit').val()),
+            'doctorId': parseInt($('#userId').val()),
+            'appointmentTimeStart': appointmentDateTimeStart,
+            'appointmentTimeEnd': appointmentDateTimeEnd,
+            'maximumPatient': maxPatient
+        };
+        $.ajax({
+            type: 'POST',
+            url: '/Appointment/Index?handler=Edit',
+            headers: {
+                RequestVerificationToken:
+                    $('input:hidden[name="__RequestVerificationToken"]').val()
+            },
+            contentType: 'application/json; charset=utf-8',
+            dataType: 'json',
+            data: JSON.stringify(obj),
+            success: function (response) {
+                if (response === 'success') {
+                    document.getElementById('header').innerHTML = 'ผลการแก้ไขข้อมูล'
+                    document.getElementById('bodySave').innerHTML = 'แก้ไขข้อมูลสำเร็จ'
+                    $('#myModalEdit').modal('hide');
+                    $('#event-modal-save').modal('show');
+                } else {
+                    alert("เกิดข้อผิดพลาด บันทึกไม่สำเร็จ");
+                }
+            }
+        });
+    }
+    function DownloadDentist() {
+        // -------------- ใส่ date ------------------
+        const date = new Date("2021-12-30");
+        const dateNow = new Date;
+        
+        // -----------------------------------------
+        $('#event-modal-load').modal('show');
+        document.getElementById("myDIV").style.display = "block";
+        $.ajax({
+            type: 'GET',
+            url: '/Appointment/Index?handler=DownloadDentist',
+            data: { "date": date },
+            success: function (data) {
+                document.getElementById('pagetotalstd').innerHTML = "download file เสร็จสิ้น"
+                document.getElementById("myDIV").style.display = "none";
+                $('#event-modal').modal('hide');
+                var createXLSLFormatObj = [];
+                /* XLS Head Columns */
+                var xlsHeader = ["ลำดับ", "หน่วยงานสังกัด", "จำนวนกำลังพลในความรับผิดชอบของหน่วย (คน)", "ตรวจสุขภาพช่องปาก (คน)", "คิดเป็นร้อยละ", "ระดับที่ 1", "ระดับที่ 2", "ระดับที่ 3", "ระดับที่ 4", "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N"];
+
+                /* XLS Rows Data */
+                var xlsRows = data
+
+                if (data != "error") {
+                    createXLSLFormatObj.push(xlsHeader);
+                    $.each(xlsRows, function (index, value) {
+                        var innerRowData = [];
+                        $.each(value, function (ind, val) {
+
+                            innerRowData.push(val);
+                        });
+                        createXLSLFormatObj.push(innerRowData);
+                    });
+
+
+                    /* File Name */
+                    var filename = "รายงานการตรวจสุขภาพช่องปากปี" + dateNow.getFullYear() + ".xlsx";
+
+                    /* Sheet Name */
+                    var ws_name = "DentistCheck" + dateNow.getFullYear();
+
+                    if (typeof console !== 'undefined') console.log(new Date());
+                    var wb = XLSX.utils.book_new(),
+                        ws = XLSX.utils.aoa_to_sheet(createXLSLFormatObj);
+
+                    /* Add worksheet to workbook */
+                    XLSX.utils.book_append_sheet(wb, ws, ws_name);
+
+                    /* Write workbook and Download */
+                    if (typeof console !== 'undefined') console.log(new Date());
+                    XLSX.writeFile(wb, filename);
+                    if (typeof console !== 'undefined') console.log(new Date());
+                    console.log(data);
+                }
+                else {
+                    alert('เกิดข้อผิดพลาด กรุณาลองใหม่')
+                }
+
+
+            },
+            error: function (err) {
+                $('#event-modal').modal('hide');
+                alert('ไม่มีข้อมูล ในวันที่เลือก')
+                console.log(err);
+            }
+        });
+    }
+    let cp = 0;
+    let tp = 2;
+    let listdata = []
+    function DownloadAll() {
+        // -------------- ใส่ date ------------------
+        
+        // -----------------------------------------
+        $('#event-modal-load-All').modal('show');
+        document.getElementById('pagetotal').innerHTML = ""
+        DownloadAllPage(1);
+    }
+    function DownloadAllPage(page) {
+        const date = new Date("2021-12-30");
+        const dateNow = new Date;
+        document.getElementById("myDIVs").style.display = "block";
+        $.ajax({
+            type: 'GET',
+            url: '/Appointment/Index?handler=DownloadShowPage',
+            data: { "date": page },
+            success: function (data) {
+                document.getElementById('pagetotal').innerHTML = "กำลัง download file " + data.currentPage + " / " + data.totalPages + " หน้า"
+                cp = data.currentPage;
+                tp = data.totalPages;
+                if (data.currentPage == data.totalPages) {
+                    document.getElementById('pagetotal').innerHTML = "download file เสร็จสิ้น"
+                    document.getElementById("myDIVs").style.display = "none";
+                    $.each(data.items, function (index, value) {
+                        var innerRowDatas = [];
+                        $.each(value, function (ind, val) {
+
+                            listdata.push(val);
+                        });
+                    });
+                    var createXLSLFormatObj = [];
+                    /* XLS Head Columns */
+                    var xlsHeader = ["คำนำหน้า", "ชื่อ", "นามสกุล", "เลขที่ทั่วไป(HN.No.)", "เลขประจำตัวประชาชน", "หน่วยงานสังกัด", "ตำแหน่ง", "ช่วยราชการ", "อายุ (ป๊) ", "เพศ (0)ชาย (1)หญิง", "สิทธิเบิก (1)ข้าราชการ (2)รัฐวิสาหกิจ (3)ปกส. (4)สปสช. (5)อื่นๆ", "น้ำหนัก (kg)", "ความสูง (cm)", "BMI (kg/m2)", "รอบเอว (cm)", "Systolic (mmHg)", "Diastolic (mmHg)", "ผล 0=ไม่ได้ตรวจ,error 1=ปกติ 2=ผิดปกติ", "ผิดปกติ (ระบุ)", "ผล 0=ไม่ได้ตรวจ,error 1=ปกติ 2=ผิดปกติ ", "Proteinurea>1+ 1=ไม่มี 2=มี", "Hematuria>1+ 1=ไม่มี 2=มี", "ผิดปกติอื่นๆ (ระบุ)", "ผล 0=ไม่ได้ตรวจ,error 1=ปกติ 2=ผิดปกติ Hct<40% และ MCV<78% 3=ผิดปกติอื่นๆ", "ผิดปกติอื่นๆ (ระบุ)", "Glu (mg/dL)", "Chol (mg/dL)", "TG (mg/dL)", "HDL-C (mg/dL)", "LDL-C (mg/dL)", "BUN (mg/dL)", "Cr (mg/dL)", "Uric (mg/dL)", "AST (U/L)", "ALT (U/L)", "ผล 0=ไม่ได้ตรวจ,error 1=ปกติ 2=ผิดปกติ", "ผิดปกติ (ระบุ)", "ผล 0=ไม่มีโรคประจำตัว 1=ความดันโลหิตสูง 2=เบาหวาน 3=โรคหัวใจและหลอดเลือด 4=ไขมันในเลือดสูง 5=มีโรคประจำตัวที่กำหนดไว้ตั้งแต่ 2 โรคขึ้นไป 6=โรคประจำตัวอื่นๆ", "โรคอื่นๆ (ระบุ)", "การสูบบุหรี่ 0=ไม่เคยสูบบุหรี่ 1=เคยสูบ แต่เลิกแล้ว 2=สูบบุหรี่ เป็นครั้งคราว 3=สูบบุหรี่ เป็นประจำ", "การดื่มเครื่องดื่มแอลกอฮอล์ 0=ไม่เคยดื่ม 1=เคยดื่ม แต่เลิกแล้ว 2=ดื่ม เป็นครั้งคราว 3=ดื่ม เป็นประจำ", "การออกกำลังกาย 0=ไม่เคยออกกำลังกาย 1=ออกกำลังกาย ต่ำกว่าเกณฑ์ 2=ออกกำลังกาย ตามเกณฑ์"];
+
+                    /* XLS Rows Data */
+                    var xlsRows = listdata
+
+                    if (data != "error") {
+                        createXLSLFormatObj.push(xlsHeader);
+                        $.each(xlsRows, function (index, value) {
+                            var innerRowData = [];
+                            $.each(value, function (ind, val) {
+
+                                innerRowData.push(val);
+                            });
+                            createXLSLFormatObj.push(innerRowData);
+                        });
+
+
+                        /* File Name */
+                        var filename = "รายงานประจำปี" + dateNow.getFullYear() + ".xlsx";
+
+                        /* Sheet Name */
+                        var ws_name = "AllPatient" + dateNow.getFullYear();
+
+                        if (typeof console !== 'undefined') console.log(new Date());
+                        var wb = XLSX.utils.book_new(),
+                            ws = XLSX.utils.aoa_to_sheet(createXLSLFormatObj);
+
+                        /* Add worksheet to workbook */
+                        XLSX.utils.book_append_sheet(wb, ws, ws_name);
+
+                        /* Write workbook and Download */
+                        if (typeof console !== 'undefined') console.log(new Date());
+                        XLSX.writeFile(wb, filename);
+                        if (typeof console !== 'undefined') console.log(new Date());
+                        console.log(data);
+                    }
+                    else {
+                        alert('เกิดข้อผิดพลาด กรุณาลองใหม่')
+                    }
+                }
+                else {
+                    page = page + 1;
+                    $.each(data.items, function (index, value) {
+                        var innerRowDatas = [];
+                        $.each(value, function (ind, val) {
+
+                            listdata.push(val);
+                        });
+                    });
+                    DownloadAllPage(page)
+                }
+            },
+            error: function (err) {
+                $('#event-modal').modal('hide');
+                alert('ไม่มีข้อมูล ในวันที่เลือก')
+                console.log(err);
+            }
+        });
+    }
+    function DownloadReprete(page) {
+        $.ajax({
+            type: 'GET',
+            url: '/Appointment/Index?handler=DownloadShowPage',
+            data: { "date": page },
+            success: function (data) {
+                document.getElementById('pagetotal').innerHTML = "กำลัง download file " + data.currentPage + " / " + data.totalPages + " หน้า"
+
+                if (data.currentPage == data.totalPages) {
+                    var createXLSLFormatObj = [];
+                    /* XLS Head Columns */
+                    var xlsHeader = ["คำนำหน้า", "ชื่อ", "นามสกุล", "เลขที่ทั่วไป(HN.No.)", "เลขประจำตัวประชาชน", "หน่วยงานสังกัด", "ตำแหน่ง", "ช่วยราชการ", "อายุ (ป๊) ", "เพศ (0)ชาย (1)หญิง", "สิทธิเบิก (1)ข้าราชการ (2)รัฐวิสาหกิจ (3)ปกส. (4)สปสช. (5)อื่นๆ", "น้ำหนัก (kg)", "ความสูง (cm)", "BMI (kg/m2)", "รอบเอว (cm)", "Systolic (mmHg)", "Diastolic (mmHg)", "ผล 0=ไม่ได้ตรวจ,error 1=ปกติ 2=ผิดปกติ", "ผิดปกติ (ระบุ)", "ผล 0=ไม่ได้ตรวจ,error 1=ปกติ 2=ผิดปกติ ", "Proteinurea>1+ 1=ไม่มี 2=มี", "Hematuria>1+ 1=ไม่มี 2=มี", "ผิดปกติอื่นๆ (ระบุ)", "ผล 0=ไม่ได้ตรวจ,error 1=ปกติ 2=ผิดปกติ Hct<40% และ MCV<78% 3=ผิดปกติอื่นๆ", "ผิดปกติอื่นๆ (ระบุ)", "Glu (mg/dL)", "Chol (mg/dL)", "TG (mg/dL)", "HDL-C (mg/dL)", "LDL-C (mg/dL)", "BUN (mg/dL)", "Cr (mg/dL)", "Uric (mg/dL)", "AST (U/L)", "ALT (U/L)", "ผล 0=ไม่ได้ตรวจ,error 1=ปกติ 2=ผิดปกติ", "ผิดปกติ (ระบุ)", "ผล 0=ไม่มีโรคประจำตัว 1=ความดันโลหิตสูง 2=เบาหวาน 3=โรคหัวใจและหลอดเลือด 4=ไขมันในเลือดสูง 5=มีโรคประจำตัวที่กำหนดไว้ตั้งแต่ 2 โรคขึ้นไป 6=โรคประจำตัวอื่นๆ", "โรคอื่นๆ (ระบุ)", "การสูบบุหรี่ 0=ไม่เคยสูบบุหรี่ 1=เคยสูบ แต่เลิกแล้ว 2=สูบบุหรี่ เป็นครั้งคราว 3=สูบบุหรี่ เป็นประจำ", "การดื่มเครื่องดื่มแอลกอฮอล์ 0=ไม่เคยดื่ม 1=เคยดื่ม แต่เลิกแล้ว 2=ดื่ม เป็นครั้งคราว 3=ดื่ม เป็นประจำ", "การออกกำลังกาย 0=ไม่เคยออกกำลังกาย 1=ออกกำลังกาย ต่ำกว่าเกณฑ์ 2=ออกกำลังกาย ตามเกณฑ์"];
+
+                    /* XLS Rows Data */
+                    var xlsRows = listdata
+
+                    if (data != "error") {
+                        createXLSLFormatObj.push(xlsHeader);
+                        $.each(xlsRows, function (index, value) {
+                            var innerRowData = [];
+                            $.each(value, function (ind, val) {
+
+                                innerRowData.push(val);
+                            });
+                            createXLSLFormatObj.push(innerRowData);
+                        });
+
+
+                        /* File Name */
+                        var filename = "รายงานประจำปี" + dateNow.getFullYear() + ".xlsx";
+
+                        /* Sheet Name */
+                        var ws_name = "AllPatient" + dateNow.getFullYear();
+
+                        if (typeof console !== 'undefined') console.log(new Date());
+                        var wb = XLSX.utils.book_new(),
+                            ws = XLSX.utils.aoa_to_sheet(createXLSLFormatObj);
+
+                        /* Add worksheet to workbook */
+                        XLSX.utils.book_append_sheet(wb, ws, ws_name);
+
+                        /* Write workbook and Download */
+                        if (typeof console !== 'undefined') console.log(new Date());
+                        XLSX.writeFile(wb, filename);
+                        if (typeof console !== 'undefined') console.log(new Date());
+                        console.log(data);
+                    }
+                    else {
+                        alert('เกิดข้อผิดพลาด กรุณาลองใหม่')
+                    }
+                }
+                else if (page > 1) {
+                    page = page + 1;
+                    $.each(data.items, function (index, value) {
+                        var innerRowDatas = [];
+                        $.each(value, function (ind, val) {
+
+                            listdata[0].push(val);
+                        });
+                    });
+                    console.log(listdata);
+                    DownloadAllPage(page);
+                }
+                else {
+                    page = page + 1;
+                    listdata = data.items;
+                    DownloadAllPage(page);
+                }
+            },
+            error: function (err) {
+                $('#event-modal').modal('hide');
+                alert('ไม่มีข้อมูล ในวันที่เลือก')
+                console.log(err);
+            }
+        });
+    }
+    async function getDelete() {
+        let data = {
+            'id': parseInt($('#btnEdit').val()),
+        }
+        var response = await makeRequest('DELETE', '/web-apps/Appointment/', data)
+        if (response === 'success') {
+                    document.getElementById('header').innerHTML = 'ผลการลบข้อมูล'
+                    document.getElementById('bodySave').innerHTML = 'ลบข้อมูลสำเร็จ'
+                    $('#event-modal-save').modal('show');
+                } else {
+                    alert("เกิดข้อผิดพลาด ลบไม่สำเร็จ");
+                }
+
+        //$.ajax({
+        //    type: 'POST',
+        //    url: '/Appointment/Index?handler=Delete',
+        //    headers: {
+        //        RequestVerificationToken:
+        //            $('input:hidden[name="__RequestVerificationToken"]').val()
+        //    },
+        //    contentType: 'application/json; charset=utf-8',
+        //    dataType: 'json',
+        //    data: JSON.stringify(data),
+        //    success: function (response) {
+        //        if (response === 'success') {
+        //            document.getElementById('header').innerHTML = 'ผลการลบข้อมูล'
+        //            document.getElementById('bodySave').innerHTML = 'ลบข้อมูลสำเร็จ'
+        //            $('#event-modal-save').modal('show');
+        //        } else {
+        //            alert("เกิดข้อผิดพลาด ลบไม่สำเร็จ");
+        //        }
+        //    }
+        //});
+
+    }
+
+    $(document).ready(function () {
+        $("#myBtn").click(function () {
+            $("#myModal").modal();
+        });
+        $("#myBtn").click(function () {
+            $("#myModal").modal();
+        });
+        getYearSelect();
+    });
+    function renderSelector(dataArray, appendElement) {
+        dataArray.forEach((data) => {
+            $("<option/>")
+                .val(data)
+                .text(data)
+                .appendTo(appendElement)
+        })
+    }
+    function getYearSelect() {
+        var d = new Date
+        var year = d.getFullYear();
+        var min = 2021
+        var forselect = []
+        for (var i = year; i >= min; i--) {
+            forselect.push(i);
+        }
+        renderSelector(forselect, '#yearSelector');
+    }
+    async function getAppointment() {
+        return await $.ajax({
+            type: "GET",
+            url: "/Appointment?handler=Appointment",
+        });
+    };
+
+    function onSaveAppointmentSetting() {
+
+        let appointmentDay = new Date(moment($('#appointment-date-id').val()).format("yyyy-MM-DD"));  //$('#appointment-Date-id').val();
+        let appointmentDateTimeStart = new Date(moment($('#appointment-date-id').val()).format("yyyy-MM-DD") + " " + $('#appointment-time-start-id').val());
+        let appointmentDateTimeEnd = new Date(moment($('#appointment-date-id').val()).format("yyyy-MM-DD") + " " + $('#appointment-time-end-id').val());
+        let maxPatient = parseInt($('#maximum-patient-id').val() ? $('#maximum-patient-id').val() : 0);
+        let data = {
+            'doctorId': parseInt($('#userId').val()),
+            'appointmentDate': appointmentDay,
+            'appointmentTimeStart': appointmentDateTimeStart,
+            'appointmentTimeEnd': appointmentDateTimeEnd,
+            'maximumPatient': maxPatient
+        };
+
+        $.ajax({
+            type: 'POST',
+            url: '/Appointment/Index',
+            headers: {
+                RequestVerificationToken:
+                    $('input:hidden[name="__RequestVerificationToken"]').val()
+            },
+            contentType: 'application/json; charset=utf-8',
+            dataType: 'json',
+            data: JSON.stringify(data),
+            success: function (response) {
+                if (response === 'success') {
+                    document.getElementById('header').innerHTML = 'ผลการบันทึกข้อมูล'
+                    document.getElementById('bodySave').innerHTML = 'บันทึกข้อมูลสำเร็จ'
+                    $('#event-modal-save').modal('show');
+                } else {
+                    alert("เกิดข้อผิดพลาด บันทึกไม่สำเร็จ");
+                }
+            }
+        });
+
+        $('#event-modal-save').on('hidden.bs.modal', function () {
+            window.location.reload();
+        })
+    }
+
+    function reportShow() {
+        $('#event-modal-report').modal('show');
+    }
+</script>

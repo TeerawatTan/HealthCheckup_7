@@ -1,0 +1,720 @@
+﻿@page
+@model HelpCheck_Web.Pages.Authen.QuestionModel
+@{
+    ViewData["Title"] = "Question";
+    Layout = "_Layout";
+    ViewData["useMenu"] = "No";
+    ViewData["roleId"] = "5";
+}
+@Html.AntiForgeryToken()
+
+<head>
+    <link rel="stylesheet" href="/resources/demos/style.css">
+</head>
+<style>
+    .vertical-alignment-helper {
+        display: table;
+        height: 100%;
+        width: 100%;
+    }
+
+    .vertical-align-center {
+        /* To center vertically */
+        display: table-cell;
+        vertical-align: middle;
+    }
+
+    .modal-content {
+        /* Bootstrap sets the size of the modal in the modal-dialog class, we need to inherit it */
+        width: inherit;
+        height: inherit;
+        /* To center horizontally */
+        margin: 0 auto;
+    }
+
+    .custom-radio {
+        width: 20px;
+        height: 20px;
+    }
+</style>
+<div class="row">
+    <div class="col-md-12">
+        <div class="main-card mb-3 card">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-12">
+                        <div class="row">
+                            <div class="col-md-3">
+                                <img src="~/assets/images/phra_mongkut_klao_hospital.png" height="150px;"
+                                    width="150px;" />
+                            </div>
+                            <div class="col-md-9" style='text-align:left;'>
+                                <br /><br />
+                                <h4 style="color:#308B57;font-size:xx-large">แบบสำรวจและคัดกรองความเสี่ยงต่อสุขภาพ</h4>
+                            </div>
+                        </div>
+                        <br />
+                        <div id="QuestionList" style="border:solid 1px;margin: auto;padding:20px;border-radius:10px;">
+                        </div>
+                        <button type="button" class="btn btn-primary my-3"
+                            style="float:right;width: 150px;font-size: 25px;" id="btnSaveAnswer">บันทึก</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade bg-dark" id="userAgreementModal" tabindex="-1" data-backdrop="static" data-keyboard="false"
+    role="dialog">
+    <div class="vertical-alignment-helper">
+        <div class="modal-dialog vertical-align-center">
+            <div class="modal-content" style="width:82%">
+                <div class="modal-header">
+                    <h3 class="modal-title" id="userAgreementModalLabel" style="font-weight:bold;font-size:28px">
+                        ข้อตกลงข้อมูลส่วนบุคคล</h3>
+                </div>
+                <div class="modal-body" style="text-align: center; font-size: 28px;">
+                    ข้าพเจ้าได้รับการอธิบายจากหน่วยต้นสังกัด เรื่องการตรวจสุขภาพประจำปี เป็นที่เรียบร้อยแล้ว
+                    ข้าพเจ้ายินยอมให้หน่วยเก็บรวบรวมข้อมูล และสามารถนำข้อมูลสุขภาพของข้าพเจ้าไปใช้ประโยชน์ทาง
+                    การแพทย์ได้ อาทิเช่น กระบวนการรักษา การให้ยา การทำหัตถการ และการวิจัยทางการแพทย์โดยไม่เปิดเผยชื่อ
+                    อีกทั้งข้าพเจ้ายินยอมให้นำผลการตรวจสุขภาพในครั้งนี้ รายงานแก่ผู้บังคับบัญชาเพื่อกรุณาทราบต่อไป
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" data-dismiss="modal"
+                        style="text-align: center; font-size: 28px;">ยอมรับ</button>
+                    <button type="button" class="btn btn-secondary" id="btnAgreementDecline"
+                        style="text-align: center; font-size: 28px;">ไม่ยอมรับ</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal" id="event-modal-save" tabindex="0" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true"
+    style="margin:auto">
+    <div class="modal-dialog" style="margin:100px auto auto auto;width:auto;max-width:550px">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="header">ผลการบันทึก</h4>
+                <button type="button" class="close" data-dismiss="modal" onclick="clicksucc()"><span
+                        aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+            </div>
+            <div class="modal-body">
+                <form name="save-event" method="post">
+                    <div class="form-group">
+                        <label>บันทึกสำเร็จ</label>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal" onclick="clicksucc()">ปิด</button>
+            </div>
+        </div>
+        @*/.modal-content*@
+    </div>
+    @*/.modal-dialog*@
+</div>
+
+
+<script>
+    $('#event-modal-save').on('hidden.bs.modal', function () {
+        window.location.reload();
+    })
+    $(document).ready(function () {
+        getMyAnswer()
+        getQuestion()
+        creatActionData()
+        $("#btnSaveAnswer").on("click", saveAnswer)
+        $("#QuestionList").on("change", ".radio-wrapper > input[type=radio]", onChangeRadioBox)
+        $("#QuestionList").on("change", "select", onChangeSelector)
+        $("#userAgreementModal").modal()
+        $("#btnAgreementDecline").on("click", () => {
+            window.location.href = '/Authen/Logout'
+        })
+    });
+
+    function clicksucc() {
+        window.location.href = '/AfterQuestion/Index'
+    }
+
+    function getMyAnswer() {
+        const year = new Date().getFullYear();
+        $.ajax({
+            type: 'GET',
+            url: '/Question/Question?handler=MyAnswer',
+            headers: {
+                RequestVerificationToken:
+                    $('input:hidden[name="__RequestVerificationToken"]').val()
+            },
+            contentType: 'application/json; charset=utf-8',
+            dataType: 'json',
+            data: { "Year": year },
+            success: function (response) {
+                console.log("getMyAnswer");
+                console.log(response);
+                if (Object.keys(response).length > 0) {
+                    window.location.href = '/AfterQuestion/Index'
+                }
+            },
+            error: function () {
+                alert("error");
+                return;
+            }
+        });
+    }
+
+    const choiceAction = []
+    const selectAction = []
+    const relatedChoiceAction = []
+    function creatActionData() {
+        for (i = 2; i <= 16; i += 2) {
+            choiceAction.push({
+                question: i,
+                selectChoiceID: 2,
+                disabledQuestion: [i + 1]
+            })
+        }
+        choiceAction.push({
+            question: 20,
+            selectChoiceID: 12,
+            extraInput: {
+                type: "text",
+                placeholder: "ชนิดของมะเร็ง..."
+            }
+        })
+        choiceAction.push({
+            question: 21,
+            selectChoiceID: 15,
+            disabledQuestion: [22, 23, 24]
+        })
+        choiceAction.push({
+            question: 23,
+            selectChoiceID: 19,
+            extraInput: {
+                type: "text",
+                placeholder: "ปีที่สูบบุหรี่..."
+            }
+        })
+        choiceAction.push({
+            question: 25,
+            selectChoiceID: 20,
+            disabledQuestion: [26, 27]
+        })
+        choiceAction.push({
+            question: 26,
+            selectChoiceID: 27,
+            extraInput: {
+                type: "text",
+                placeholder: "ชนิดของเครื่องดื่ม..."
+            }
+        })
+        selectAction.push({
+            question: 37,
+            selectValue: "0",
+            disabledQuestion: [38]
+        })
+        choiceAction.push({
+            question: 40,
+            selectChoiceID: 35,
+            extraInput: {
+                type: "text",
+                placeholder: "ชนิดของโรคประจำตัว..."
+            }
+        })
+        relatedChoiceAction.push({
+            choices: [{
+                question: 41,
+                answer: 35
+            }, {
+                question: 42,
+                answer: 35
+            }],
+            //extraQuestion: [43, 44, 45, 46, 47, 48, 49, 50, 51]
+        })
+    }
+
+    function onChangeSelector(e) {
+        const qData = $(e.target).parent().data()
+        const ansVal = $(e.target).val()
+        const action = selectAction.find(x => x.question == qData.questionID)
+        if (action) {
+            $(".radio-wrapper").not($(e.target).parent()).each((idx, el) => {
+                const cqData = $(el).data()
+                if (action.disabledQuestion.includes(cqData.questionID)) {
+                    const shouldDisabled = ansVal == action.selectValue
+                    $(el).children("select").prop("disabled", shouldDisabled)
+                    if (shouldDisabled) {
+                        $(el).children("select").val($(el).children("select").children("option").first().val())
+                    }
+                }
+            })
+        }
+    }
+
+    function onChangeRadioBox(e) {
+        const qData = $(e.target).parent().data()
+        const aData = $(e.target).data()
+        const action = choiceAction.find(x => x.question == qData.questionID)
+        if (action) {
+            // Disable Question
+            if (action.disabledQuestion) {
+                $(".radio-wrapper").not($(e.target).parent()).each((idx, el) => {
+                    const cqData = $(el).data()
+                    if (action.disabledQuestion.includes(cqData.questionID)) {
+                        const shouldDisabled = aData.choiceID == action.selectChoiceID
+                        $(el).children("input").prop("disabled", shouldDisabled)
+                        if (shouldDisabled) {
+                            $(el).children("input").prop("checked", false)
+                        }
+                    }
+                })
+            }
+            // Show Extra Input
+            if ("extraInput" in action) {
+                const inputEle = $(e.target).parent().children("input[type=text]")
+                if (aData.choiceID == action.selectChoiceID) {
+                    inputEle.removeClass("d-none")
+                } else {
+                    inputEle.addClass("d-none")
+                }
+            }
+        }
+        const rcAction = relatedChoiceAction.find(x => x.choices.some((c) => {
+            return c.question === qData.questionID
+        }))
+        if (rcAction) {
+            // Show Extra Question
+            if (rcAction.extraQuestion) {
+                const evaluateArray = []
+                $(".radio-wrapper").children("input:checked").each((idx, el) => {
+                    const qData = $(el).parent().data()
+                    const aData = $(el).data()
+                    const matchedRCQ = rcAction.choices.find(x => x.question == qData.questionID)
+                    if (matchedRCQ) {
+                        evaluateArray.push(rcAction.choices.some(x => x.question == qData.questionID && x.answer == aData.choiceID))
+                    }
+                })
+                toggleQuestion(evaluateArray.some(x => x == true), rcAction.extraQuestion)
+            }
+        }
+    }
+
+    function toggleQuestion(shouldHide, extraQuestion) {
+        $(".radio-wrapper").each((idx, el) => {
+            const qData = $(el).data()
+            if (extraQuestion.includes(qData.questionID)) {
+                $(el).children("input").prop("disabled", !shouldHide)
+                if (shouldHide) {
+                    $(el).parent().removeClass("d-none")
+                } else {
+                    $(el).parent().addClass("d-none")
+                    //$(el).children("input").prop("checked", false)
+                }
+            }
+        })
+    }
+
+    function checkAllAnswerForm(skipQuestion, allAction) {
+        /// NOTE: Need refector to minimize loop
+        const invalidArray = []
+        // Check is every question have answer
+        $(".check-group:not(.d-none) > .radio-wrapper").each((i, e) => {
+            const qData = $(e).data()
+            // Skip match no validate question
+            if (skipQuestion.includes(qData.questionID)) {
+                return true
+            }
+            let isValid = false
+            $(e).children("input[type=radio], input[type=text], input[type=number], select").not(":disabled").each((idx, ele) => {
+                // Already valid skip till next question
+                if (isValid) {
+                    return true
+                }
+                const tagType = $(ele).prop("tagName")
+                const inputType = $(ele).attr("type")
+                const aData = $(ele).data()
+                const matchedExtraInputQuestion = allAction.find(a => a.question == qData.questionID && "extraInput" in a)
+                if (matchedExtraInputQuestion) {
+                    // If answer has extra input add answerKeyIn
+                    if (matchedExtraInputQuestion.selectChoiceID == aData.choiceID) {
+                        isValid = $(ele).parent().children("input").last().val() !== ""
+                        return true
+                    }
+                }
+                if (qData.questionID == 28) {
+                    const number = Number($(ele).val())
+                    if (isNaN(number)) {
+                        isValid = false
+                    } else {
+                        isValid = (number >= 0 && number <= 100)
+                    }
+                } else if (inputType === "text" || inputType === "number" || tagType === "SELECT") {
+                    isValid = $(ele).val() !== ""
+                } else {
+                    isValid = $(ele).is(":checked")
+                }
+            })
+            //console.log(`${qData.questionID} = ${isValid}`)
+            if (!isValid) {
+                invalidArray.push(++i)
+            }
+        })
+        return invalidArray
+    }
+
+    function saveAnswer() {
+        const answerArray = []
+        const skipQuestion = []
+        const allAction = [...choiceAction, ...selectAction]
+        $(".radio-wrapper").each((i, e) => {
+            const qData = $(e).data()
+            $(e).children("input[type=radio]:checked, input[type=text], input[type=number], select").not(":disabled").each((idx, ele) => {
+                const tagType = $(ele).prop("tagName")
+                const aData = $(ele).data()
+                const resultObject = {
+                    "questionID": qData.questionID,
+                    "questionNum": qData.questionNum,
+                    "choiceID": aData.choiceID,
+                    "choiceNum": aData.choiceNum,
+                    //"answerKeyIn": null
+                }
+                const matchedExtraInputQuestion = choiceAction.find(x => x.question == qData.questionID && "extraInput" in x)
+                // Skip no choice data (extra input)
+                if (typeof resultObject.choiceID === "undefined") {
+                    return
+                }
+                if (matchedExtraInputQuestion) {
+                    // If answer has extra input add to answerKeyIn
+                    if (matchedExtraInputQuestion.selectChoiceID == aData.choiceID) {
+                        resultObject.answerKeyIn = $(ele).parent().children("input").last().val()
+                    }
+                } else {
+                    const inputType = $(ele).attr("type")
+                    if (inputType === "text" || inputType === "number" || tagType === "SELECT") {
+                        resultObject.answerKeyIn = $(ele).val()
+                    }
+                }
+                if (resultObject.answerKeyIn != "") {
+                    answerArray.push(resultObject)
+                }
+                const matchedAction = allAction.find(a => a.question == resultObject.questionID && "disabledQuestion" in a)
+                if (matchedAction) {
+                    const isSkip = (matchedAction.selectChoiceID || matchedAction.selectValue) == resultObject.choiceID
+                    if (isSkip) {
+                        matchedAction.disabledQuestion.forEach(q => skipQuestion.push(q))
+                    }
+                }
+            })
+        })
+        const resultValidateArray = checkAllAnswerForm(skipQuestion, allAction)
+        if (resultValidateArray.length == 0) {
+            $.ajax({
+                type: 'POST',
+                url: '/Question/Question?handler=Booking',
+                headers: {
+                    RequestVerificationToken:
+                        $('input:hidden[name="__RequestVerificationToken"]').val()
+                },
+                contentType: 'application/json; charset=utf-8',
+                dataType: 'json',
+                data: JSON.stringify(answerArray),
+                success: function (response) {
+                    var modala = document.getElementById("event-modal-save");
+                    modala.style.display = "block";
+                },
+                error: function () {
+                    //window.location.href = '/Booking/Booking'
+                    alert("เกิดข้อผิดพลาดบางอย่าง เข้าสู่ระบบไม่สำเร็จ");
+                    return;
+                }
+            });
+        } else {
+            alert(`กรุณาทำแบบสอบถามให้ครบถ้วน (ข้อ ${resultValidateArray.join(",")})`)
+        }
+    }
+
+    function getExtraQuestion() {
+        const questionSet = new Set();
+        relatedChoiceAction.forEach(x => {
+            if (x.hasOwnProperty("extraQuestion")) {
+                x.extraQuestion.forEach(q => questionSet.add(q))
+            }
+        })
+        return [...questionSet]
+    }
+
+    const excludeQuestion = [35, 36, 41, 42]
+    const sectionArray = [{
+        atQID: 2,
+        title: "โรคประจำตัว"
+    }, {
+        atQID: 18,
+        title: "ประวัติบิดา/มารดาเจ็บป่วย"
+    }, {
+        atQID: 21,
+        title: "การสูบบุหรี่"
+    }, {
+        atQID: 25,
+        title: "การดื่มเหล้า"
+    }, {
+        atQID: 28,
+        title: "ประเมินสุขภาพโดยรวม"
+    }, {
+        atQID: 29,
+        title: `"ความยากลำบาก"ของการทำกิจกรรม`
+    }, {
+        atQID: 33,
+        title: "การออกกำลังกาย"
+    }, {
+        atQID: 37,
+        title: "การออกกำลังกาย"
+    }, {
+        atQID: 40,
+        title: "ประวัติโรคประจำตัว"
+    }, {
+        atQID: 66,
+        title: "แบบประเมิน GHQ-28 หมวดที่ 1 อาการทางกาย"
+    }, {
+        atQID: 73,
+        title: "แบบประเมิน GHQ-28 หมวดที่ 2 อาการวิตกกังวลและนอนไม่หลับ"
+    }, {
+        atQID: 80,
+        title: "แบบประเมิน GHQ-28 หมวดที่ 3 ความบกพร่องทางสังคม"
+    }, {
+        atQID: 87,
+        title: "แบบประเมิน GHQ-28 หมวดที่ 4 อาการซึมเศร้าที่รุนแรง"
+        }, {
+            atQID: 43,
+            title: "แบบประเมิน 9Q"
+        }, {
+            atQID: 57,
+            title: "แบบประเมิน 8Q"
+        }]
+
+
+    function getQuestion() {
+        $.ajax({
+            type: 'GET',
+            url: '/Question/Question?handler=Question',
+            contentType: 'application/json; charset=utf-8',
+            dataType: 'json',
+            success: function (response) {
+                $("#QuestionList").empty()
+                const extraQuestion = getExtraQuestion()
+                let questionCounter = 1
+
+                const customArray = customOrderQuestion(response)
+                customArray.forEach(data => {
+                    const sectionObject = sectionArray.find(x => x.atQID == data.questionID)
+                    if (sectionObject) {
+                        $('#QuestionList').append(`<h1 class="text-left mt-2" style="font-weight: bold;color: cornflowerblue;">${sectionObject.title}</h1>`)
+                    }
+                    if (!excludeQuestion.includes(data.questionID)) {
+                        if (data.questionName.indexOf("(") >= 0) {
+                            var qSpilt = data.questionName.split("(");
+                            if (qSpilt.length > 2) {
+                                $('#QuestionList').append(`
+                                    <div class="check-group text-left">
+                                        <p class="font-weight-bold" style="font-size:25px">${data.questionNum}.${qSpilt[0]}</p>
+                                        <p class="font-weight-bold" style="font-size:25px;color:red">(${qSpilt[1]} (${qSpilt[2]}</p>
+                                        <div class="radio-wrapper ml-2"></div>
+                                    </div>`)
+                            } else {
+                                $('#QuestionList').append(`
+                                    <div class="check-group text-left">
+                                        <p class="font-weight-bold" style="font-size:25px">${data.questionNum}.${qSpilt[0]}</p>
+                                        <p class="font-weight-bold" style="font-size:25px;color:red">(${qSpilt[1]}</p>
+                                        <div class="radio-wrapper ml-2"></div>
+                                    </div>`)
+                            }
+                        } else {
+                            $('#QuestionList').append(`
+                                <div class="check-group text-left">
+                                    <p class="font-weight-bold" style="font-size:25px">${questionCounter}.${data.questionName}</p>
+                                    <div class="radio-wrapper ml-2"></div>
+                                </div>`)
+                        }
+                        const inputWithOtherChoice = choiceAction.find(x => x.question == data.questionID && x.hasOwnProperty("extraInput"))
+                        if (inputWithOtherChoice) {
+                            data.choices.forEach(val => {
+                                $('#QuestionList > .check-group > .radio-wrapper:last').append(`<input type="radio" class="ml-3 mr-1 custom-radio" name="choice_for_${data.questionID}" /><span style="font-size:25px;color:#127d14">${val.choiceName}</span><br/>`)
+                                $('#QuestionList > .check-group > .radio-wrapper:last > input:last').data({
+                                    choiceID: val.choiceID,
+                                    choiceNum: val.choiceNum
+                                })
+                            })
+                            $('#QuestionList > .check-group > .radio-wrapper:last').append(`<input type="text" class="form-control my-2 d-none" placeholder="${inputWithOtherChoice.extraInput.placeholder}" />`)
+                        } else {
+                            switch (data.questionID) {
+                                case 28:
+                                    $('#QuestionList > .check-group > .radio-wrapper:last').append(`<input type="number" class="form-control" min="0" max="100" />`)
+                                    $('#QuestionList > .check-group > .radio-wrapper:last > input:last').data({
+                                        choiceID: data.choices[0].choiceID,
+                                        choiceNum: data.choices[0].choiceNum
+                                    })
+                                    break
+                                default:
+                                    data.choices.forEach(val => {
+                                        if (val.choiceName) {
+                                            $('#QuestionList > .check-group > .radio-wrapper:last').append(`<input type="radio" class="ml-3 mr-1 custom-radio" name="choice_for_${data.questionID}" /><span style="font-size:25px;color:#127d14">${val.choiceName}</span><br/>`)
+                                        } else {
+                                            $('#QuestionList > .check-group > .radio-wrapper:last').append(`<input type="text" class="form-control"/>`)
+                                        }
+                                        $('#QuestionList > .check-group > .radio-wrapper:last > input:last').data({
+                                            choiceID: val.choiceID,
+                                            choiceNum: val.choiceNum
+                                        })
+                                    })
+                                    break
+                            }
+                        }
+                        if (extraQuestion.includes(data.questionID)) {
+                            $('#QuestionList > .check-group:last').addClass("d-none")
+                            $('#QuestionList > .check-group:last > .radio-wrapper').children("input").prop("disabled", true)
+                        }
+                        $('#QuestionList > .check-group > .radio-wrapper:last').data({
+                            questionID: data.questionID,
+                            questionNum: data.questionNum
+                        })
+                        questionCounter++
+                    }
+                });
+            },
+            error: function () {
+                alert("เกิดข้อผิดพลาดบางอย่าง เข้าสู่ระบบไม่สำเร็จ");
+            }
+        });
+    }
+
+    function customOrderQuestion(response) {
+
+
+        const idToDelete = [52, 53, 54, 55, 56];
+
+        const filteredArray = response.filter((obj) => !idToDelete.includes(obj.questionID));;
+
+        console.log(filteredArray);
+        let arr9Q = [filteredArray[34], filteredArray[35], filteredArray[36], filteredArray[37], filteredArray[38], filteredArray[39], filteredArray[40], filteredArray[41], filteredArray[42]]
+        let arr8Q = [filteredArray[43], filteredArray[44], filteredArray[45], filteredArray[46], filteredArray[47], filteredArray[48], filteredArray[49], filteredArray[50], filteredArray[51]]
+
+        const idToDelete2 = [43, 44, 45, 46, 47,48,49,50,51,57,58,59,60,61,62,63,64,65];
+        const otherArray = filteredArray.filter((obj) => !idToDelete2.includes(obj.questionID));;
+        console.log(otherArray);
+
+        let subarr = otherArray.concat(arr9Q);
+        let arr = subarr.concat(arr8Q);
+        console.log(arr);
+        //const moveToArray = [{
+        //        "fromId": 66,
+        //        "toId": 43
+        //    },{
+        //        "fromId": 67,
+        //        "toId": 44
+        //    },{
+        //        "fromId": 68,
+        //        "toId": 45
+        //    },{
+        //        "fromId": 69,
+        //        "toId": 46
+        //    },{
+        //        "fromId": 70,
+        //        "toId": 47
+        //    }, {
+        //        "fromId": 71,
+        //        "toId": 48
+        //    }, {
+        //        "fromId": 72,
+        //        "toId": 49
+        //    }, {
+        //        "fromId": 73,
+        //        "toId": 50
+        //    }, {
+        //        "fromId": 74,
+        //        "toId": 51
+        //    }, {
+        //        "fromId": 75,
+        //        "toId": 52
+        //    }, {
+        //        "fromId": 76,
+        //        "toId": 53
+        //    }, {
+        //        "fromId": 78,
+        //        "toId": 54
+        //    }, {
+        //        "fromId": 79,
+        //        "toId": 55
+        //    }, {
+        //        "fromId": 80,
+        //        "toId": 56
+        //    }, {
+        //        "fromId": 81,
+        //        "toId": 57
+        //    }, {
+        //        "fromId": 82,
+        //        "toId": 58
+        //    }, {
+        //        "fromId": 83,
+        //        "toId": 59
+        //    }, {
+        //        "fromId": 84,
+        //        "toId": 80
+        //    }, {
+        //        "fromId": 85,
+        //        "toId": 81
+        //    }, {
+        //        "fromId": 86,
+        //        "toId": 82
+        //    }, {
+        //        "fromId": 87,
+        //        "toId": 83
+        //    }, {
+        //        "fromId": 88,
+        //        "toId": 84
+        //    }, {
+        //        "fromId": 88,
+        //        "toId": 85
+        //    }, {
+        //        "fromId": 90,
+        //        "toId": 86
+        //    }, {
+        //        "fromId": 91,
+        //        "toId": 87
+        //    }, {
+        //        "fromId": 92,
+        //        "toId": 88
+        //    }, {
+        //        "fromId": 93,
+        //        "toId": 89
+        //    }]
+
+        //let arr = filteredArray
+        
+        //for(const moveProperty of moveToArray){
+        //    const oldIndex = arr.findIndex(x => x.questionID == moveProperty.fromId)
+        //    const newIndex = arr.findIndex(x => x.questionID == moveProperty.toId)
+
+        //    // No index skip to next move
+        //    if(oldIndex == -1 || newIndex == -1 ){
+        //        continue
+        //    }
+
+        //    const length = arr.length;
+        //    const itemToMove = arr[oldIndex]
+
+        //    /*if (oldIndex === newIndex || oldIndex > length || newIndex > length) {
+        //        return arr
+        //    }
+
+        //    arr = arr.flatMap((item, index) => {
+        //        if (index === oldIndex) return []
+        //        if (index === newIndex) return oldIndex < newIndex ? [item, itemToMove] : [itemToMove, item]
+        //        return item
+        //    })*/
+        //    const temp = arr[oldIndex]
+        //    arr[oldIndex] = arr[newIndex]
+        //    arr[newIndex] = temp
+        //}
+        //console.log(arr)
+        return arr
+    }
+</script>

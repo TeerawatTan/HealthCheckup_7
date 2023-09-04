@@ -1,0 +1,319 @@
+﻿@page
+@model HelpCheck_Web.Pages.Authen.BookingModel
+@{
+    ViewData["Title"] = "Calendar";
+    Layout = "_Layout";
+    ViewData["useMenu"] = "No";
+    ViewData["roleId"] = "5";
+}
+@Html.AntiForgeryToken()
+<head>
+    <script src="~/js/moment.min.js"></script>
+    <script src='https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js'></script>
+    <script src='https://cdn.rawgit.com/davidshimjs/qrcodejs/gh-pages/qrcode.min.js'></script>
+
+</head>
+<style>
+    #qrcode {
+        width: 100%;
+        margin-top: 15px;
+        text-align: -webkit-center;
+    }
+
+    #qrcode2 {
+        width: 100%;
+        margin-top: 15px;
+        text-align: -webkit-center;
+    }
+
+    .login-form {
+        border: none;
+        border-bottom: 2px solid #E9E9F0 !important;
+        background-color: transparent !important;
+        color: #648D82;
+    }
+
+    .btn-error {
+        color: #fff;
+        background-color: red;
+        border-color: red;
+    }
+
+    button.mt-1.btn.btn-error {
+        border: 1px solid red;
+    }
+
+        button.mt-1.btn.btn-error:hover, .detail-button:hover, #nextBtn:hover {
+            background-color: #ffffff !important;
+            color: red !important;
+        }
+</style>
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="main-card mb-3 card">
+            <div class="card-body">
+                <button type="button" class="mt-1 btn btn-primary" style="font-size:x-large;float:right" onclick="printDiv('printableArea')">พิมพ์บัตรนัด</button>
+                <button type="button" class="mt-1 btn btn-danger" style="font-size:x-large;float:left" onclick="openModal()">ยกเลิก/เปลี่ยนวันนัดหมาย</button>
+                <div class="row" style="width:100%;">
+                    <div class="row" style="margin:auto;">
+                        <br />
+                        <div class="col-md-5 col-sm-12" style='text-align:right;'>
+                            <img src="~/assets/images/phra_mongkut_klao_hospital.png" height="150px;" width="150px;" />
+                        </div>
+                        <div class="col-md-7 col-sm-12" style='text-align:left;'>
+                            <br /><br />
+                            <h2 style="color:#308B57">โรงพยาบาลพระมงกุฏเกล้า</h2>
+                            <h2 style="color:dimgray">บัตรคิว</h2>
+                            <div id="cancelBooking" style="visibility:hidden"></div>
+                            <div id="dateTest" style="visibility:hidden"></div>
+                        </div>
+                        <div style="margin:auto;border:solid 1px;margin-top:5%;border-radius: 20px;">
+                            <input id="idCard" type="text" hidden />
+                            <br />
+                            <div id="qrcode" style="text-align: -webkit-center;"></div>
+                            <br /><br />
+                                  <div style="text-align: center;">
+                                      <h2 id="Hn1"></h2>
+                                      <h2 id="name2">ชื่อ</h2>
+                                      <h1>คิวที่</h1>
+                                      <h1 id="queueNo"></h1>
+                                      <h2 id="doctorFN"></h2>
+                                      <h2 id="datequeue"></h2>
+                                      <h2 id="time"></h2>
+                                      <h2 style="color:red">หากมีปัญหา ติดต่อ 99515</h2>
+                                      <h2 style="color:red">ในเวลาราชการ</h2>
+                                  </div>
+                        </div>
+                    </div>
+                    <div class="row" style="margin:auto;" id="printableArea" hidden>
+                        <br />
+                        <br />
+                        <div class="col-md-5 col-sm-12" style='text-align:center;'>
+                            <img src="~/assets/images/phra_mongkut_klao_hospital.png" height="150px;" width="150px;" />
+                        </div>
+                        <div class="col-md-7 col-sm-12" style='text-align:center;'>
+                            <br /><br />
+                            <h2 style="color:#308B57">โรงพยาบาลพระมงกุฏเกล้า</h2>
+                            <h2 style="color:dimgray">บัตรคิว</h2>
+                        </div>
+                        <div style="margin:auto;border:solid 1px;margin-top:5%;border-radius: 20px;">
+                            <input id="idCard2" type="text" hidden />
+                            <br />
+                            <div id="qrcode2" style="text-align: -webkit-center;"></div>
+                            <br /><br />
+                                  <div style="text-align: center;">
+                                      <h2 id="Hn2"></h2>
+                                      <h2 id="name1">ชื่อ</h2>
+                                      <h1>คิวที่</h1>
+                                      <h1 id="queueNo2"></h1>
+                                      <h2 id="doctorFN2"></h2>
+                                      <h2 id="datequeue2"></h2>
+                                      <h2 id="time2"></h2>
+                                      <h2 style="color:red">หากมีปัญหา ติดต่อ 99515</h2>
+                                      <h2 style="color:red">ในเวลาราชการ</h2>
+                                  </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal " id="event-modal-save" tabindex="0" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" style="margin:auto">
+    <div class="modal-dialog" style="margin:100px auto auto auto;width:auto;max-width:550px">
+        <div class="modal-content" style='border-radius: 20px;'>
+            <div class="modal-body" style="text-align: center;width:100%">
+                <h1>ยืนยันการยกเลิกนัดหมาย</h1>
+                <h1 style="color:red">การยกเลิกการนัดหมาย สามารถยกเลิกได้ก่อนวันนัดหมาย 3 วันเท่านั้น</h1>
+                <button type="button" class="mt-1 btn btn-success" style="font-size:x-large;width: 100px;" onclick="goCancelBooking()" id="successBtn">ยืนยัน</button>
+                <button type="button" class="mt-1 btn btn-error" style="font-size:x-large;width: 100px;" onclick="goClose()">ปิด</button>
+            </div>
+        </div>
+        @*/.modal-content*@
+    </div>
+    @*/.modal-dialog*@
+</div>
+<div class="modal " id="event-modal-complete" tabindex="0" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" style="margin:auto">
+    <div class="modal-dialog" style="margin:100px auto auto auto;width:auto;max-width:550px">
+        <div class="modal-content" style='border-radius: 20px;'>
+            <div class="modal-body" style="text-align: center;">
+                <h1>บันทึกสำเร็จ</h1>
+                <button type="button" class="mt-1 btn btn-error" style="font-size:x-large;width: 100px;" onclick="goBooking()">ปิด</button>
+            </div>
+        </div>
+        @*/.modal-content*@
+    </div>
+    @*/.modal-dialog*@
+</div>
+
+@*<br/>
+    <div class="row" style="width: 100%;place-content: center;">
+
+            <p id="demo"></p>
+        </div>*@
+
+<script>
+    function openModal() {
+        var modala = document.getElementById("event-modal-save");
+        modala.style.display = "block";
+        var dateBooking = document.getElementById("dateTest").innerHTML;
+        var onlyDate = new Date(dateBooking)
+
+        var dateNow = new Date;
+        dateNow.setDate(dateNow.getDate() + 3);
+        var today = onlyDate;
+        if (dateNow >= onlyDate) {
+            document.getElementById("successBtn").disabled = true;
+        }
+        else {
+            document.getElementById("successBtn").disabled = false;
+        }
+    }
+    function goClose() {
+        var modala = document.getElementById("event-modal-save");
+        modala.style.display = "none";
+    }
+    function goCancelBooking() {
+        var test = document.getElementById('cancelBooking').innerHTML;
+        var sub = parseInt(test);
+        $.ajax({
+            type: 'POST',
+            url: '/Booking/Booking?handler=CancelBooking',
+            contentType: 'application/json; charset=utf-8',
+            headers: {
+                RequestVerificationToken:
+                    $('input:hidden[name="__RequestVerificationToken"]').val()
+            },
+            dataType: 'json',
+            data: JSON.stringify(sub),
+            success: function (response) {
+                if (response == "success") {
+                    var modala = document.getElementById("event-modal-complete");
+                    modala.style.display = "block";
+                    var modalb = document.getElementById("event-modal-save");
+                    modalb.style.display = "none";
+                    window.location.href = '/Calendar/Calendar'
+                }
+                else {
+                    alert("เกิดข้อผิดพลาดบางอย่าง ยกเลิกนัดหมายไม่สำเร็จ");
+                }
+                
+            },
+            error: function () {
+                alert("เกิดข้อผิดพลาดบางอย่าง เข้าสู่ระบบไม่สำเร็จ");
+                return;
+            }
+        });
+    }
+    var qrcode = new QRCode("qrcode");
+    var qrcode2 = new QRCode("qrcode2");
+    $(document).ready(function () {
+        getMyProfile()
+        getMyBooking()
+    })
+    function printDiv(divName) {
+        var printContents = document.getElementById(divName).innerHTML;
+        var originalContents = document.body.innerHTML;
+
+        document.body.innerHTML = printContents;
+
+        window.print();
+
+        document.body.innerHTML = originalContents;
+    }
+    function makeCode() {
+        var elText = document.getElementById("idCard");
+
+        if (!elText.value) {
+            alert("Input a text");
+            elText.focus();
+            return;
+        }
+
+        qrcode.makeCode(elText.value);
+        qrcode2.makeCode(elText.value);
+    }
+    function convertTime(dateText) {
+        var timeText = moment(dateText).format("HH:mm");
+        var sp = timeText.split(':');
+        var spint = parseInt(sp[0]) + 7;
+        var text = spint.toString();
+        if (spint < 10) {
+            text = "0" + spint.toString();
+        }
+        var textCom = text + ":" + sp[1];
+        return textCom
+    }
+    function getMyBooking() {
+        $.ajax({
+            type: 'GET',
+            url: '/Booking/Booking?handler=MyBooking',
+            contentType: 'application/json; charset=utf-8',
+            dataType: 'json',
+            success: function (response) {
+                if (response != "error" && response != null) {
+                    
+                    var stTime = moment(response.appointmentDateTimeStart).format("HH:mm");
+                    var endTime = moment(response.appointmentDateTimeEnd).format("HH:mm");
+
+                    document.getElementById("cancelBooking").innerHTML = response.appointmentID
+                    document.getElementById("dateTest").innerHTML = response.appointmentDate;
+                    document.getElementById("queueNo").innerHTML = response.queueNo;
+                    document.getElementById("doctorFN").innerHTML = response.doctorFullName;
+                    document.getElementById("datequeue").innerHTML = "วันที่ " + moment(response.appointmentDate).format("DD/MM/YYYY");
+                    document.getElementById("queueNo2").innerHTML = response.queueNo;
+                    document.getElementById("doctorFN2").innerHTML = response.doctorFullName;
+                    document.getElementById("datequeue2").innerHTML = "วันที่ " + moment(response.appointmentDate).format("DD/MM/YYYY");
+                    document.getElementById("time").innerHTML = "เวลา " + stTime + " ถึง " + endTime;
+                    document.getElementById("time2").innerHTML = "เวลา " + stTime + " ถึง " + endTime;
+
+                } else {
+                    document.getElementById("queueNo").innerHTML = "1";
+                    document.getElementById("doctorFN").innerHTML = 'พล.อ. admin test';
+                    document.getElementById("datequeue").innerHTML = "วันที่ 12/12/2565";
+                    document.getElementById("queueNo2").innerHTML = "1";
+                    document.getElementById("doctorFN2").innerHTML = 'พล.อ. admin test';
+                    document.getElementById("datequeue2").innerHTML = "วันที่ 12/12/2565";
+                }
+            },
+            error: function () {
+                alert("เกิดข้อผิดพลาดบางอย่าง เข้าสู่ระบบไม่สำเร็จ");
+                return;
+            }
+        });
+    }
+    function getMyProfile() {
+        $.ajax({
+            type: 'GET',
+            url: '/Booking/Booking?handler=MyProfile',
+            contentType: 'application/json; charset=utf-8',
+            dataType: 'json',
+            success: function (response) {
+                console.log("getMyProfile");
+                console.log(response);
+                if (response == null) {
+                    document.getElementById("idCard").value = '1360900008364'
+                    document.getElementById("idCard2").value = '1360900008364'
+                    document.getElementById("name1").innerHTML = "นาย Test"
+                    document.getElementById("name2").innerHTML = "นาย Test"
+                    document.getElementById("Hn1").innerHTML = "HN : 0/0"
+                    document.getElementById("Hn2").innerHTML = "HN : 0/0"
+                } else {
+                    document.getElementById("idCard").value = response.idCard == null ? '1360900008364' : response.idCard
+                    document.getElementById("idCard2").value = response.idCard == null ? '1360900008364' : response.idCard
+                    document.getElementById("name1").innerHTML = response.fullName
+                    document.getElementById("name2").innerHTML = response.fullName
+                    document.getElementById("Hn1").innerHTML = "HN : "+response.hn
+                    document.getElementById("Hn2").innerHTML = "HN : " +response.hn
+                }
+
+                makeCode();
+            },
+            error: function () {
+                alert("เกิดข้อผิดพลาดบางอย่าง เข้าสู่ระบบไม่สำเร็จ");
+                return;
+            }
+        });
+    }
+</script>

@@ -1,0 +1,377 @@
+﻿@page
+@model HelpCheck_Web.Pages.test.IndexModel
+@{
+    ViewData["Title"] = "ข้อมูลผู้ป่วย";
+    ViewData["useMenu"] = "No";
+    ViewData["roleId"] = "3";
+}
+@Html.AntiForgeryToken()
+<form>
+    <div class="patient-wrapper row">
+        <div class="patient-name-wrapper col-md-4 col-sm-3">
+            <div class="patient-name">
+                <p>ข้อมูลผู้ป่วย</p>
+                <div class="form-search-wrapper">
+                    <input type="text" name="input" placeholder="ค้นหาผู้ป่วย" class="form-control" id="search-input-id" autofocus>
+                    <span class="clear-input">x</span>
+                </div>
+                <div class="patient-name-profile" id="patient-profile-id">
+                </div>
+            </div>
+        </div>
+        <div class="patient-detail-wrapper col-md-8 col-sm-3">
+            <div class="patient-detail">
+                <div class="patient-name-profile" id="prifile-detail">
+                    <div class="profile justify-content-center">
+                        <div class="profile-image">
+                            <img class="img-profile-set" src="~/assets/images/icon-personal.png" />
+                        </div>
+                        <div class="profile-name">
+                            <input id="seletedMemberId" name="seletedMemberId" hidden="hidden" />
+                            <p id="patientname-show"></p>
+                            <p id="patientdetail-show"></p>
+                        </div>
+                    </div>
+                </div>
+                @*<div class="dropdown dropdown-dark" id="ddPhId">
+                    <select id="ddPhysical" name="PhisicalID" class="dropdown-select">
+                        <option value="0">Please select</option>
+                        @foreach (var ph in Model.PhysicalList)
+                        {
+                            <option value="@ph.ID">@ph.Name</option>
+                        }
+                    </select>
+                </div>*@
+            <div id="card-space">
+                <div class="row" id="ftRow">
+                    
+                </div>
+                <div class="row" id="sdRow">
+                    
+                </div>
+            </div>
+                <div id="btn-footer">
+                    
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        $("#search-input-id").keyup(searchPatient);
+    });
+
+    function searchPatient() {
+        if ($("#search-input-id").length > 0) {
+            var txtSearch = $("#search-input-id").val();
+            $.ajax({
+                type: "GET",
+                url: "/Patient?handler=PatientAppointment",
+                data: { "search": txtSearch },
+                success: function (response) {
+                    $('#patient-profile-id').html('');
+                    if (response) {
+                        response.forEach((data, i) => {
+                            $('#patient-profile-id').append(
+                                `<div class="profile">
+                                    <div class="profile-image">
+                                        <img class="img-profile-set" src="/assets/images/icon-personal.png" />
+                                    </div>
+                                    <div class="profile-name">
+                                        <p id="patientname">${data.fullName}</p>
+                                        <p id="patientdetail">${data.agencyName} ${data.jobTypeName} ${data.workPlaceName}</p>
+                                    </div>
+                                    <input id="profile-memberId" name="profile-memberId" value="${data.memberId}" asp-for="${data.memberId}" readonly="readonly" hidden="hidden" />
+                                </div>`)
+                        });
+                    }
+                }
+            });
+        }
+    }
+    function openPhusical() {
+        var PhysicalID = 3;
+        $.ajax({
+            type: "GET",
+            url: "/Patient?handler=PhysicalDetail",
+            data: { "id": PhysicalID },
+            success: function (response) {
+                $('#ftRow').html('');
+                $('#sdRow').html('');
+                $('#btn-footer').html('');
+                var listDam = [1, 2, 7, 3, 4,5,6]
+                resultr = []
+                listDam.forEach(function (key) {
+                    var found = false;
+                    response = response.filter(function (item) {
+                        if (item.id == key) {
+                            resultr.push(item);
+                            found = true;
+                            return false;
+                        } else
+                            return true;
+                    })
+                })
+                resultr.forEach((data, i) => {
+                    switch (data.id) {
+                        case 1:
+                            $('#ftRow').append(`<div class="card-space col-md-4">
+                        <div class="detail-card-wrapper" style="background-color: ${data.bgColor}">
+                            <div class="detail-card">
+                                <div class="title-detail-card">
+                                    <p>${data.descriptTh}</p>
+                                </div>
+                                <div class="input-detail-card d-flex">
+                                    <input type="text" id="physicalId_${i}" name="physical_${i}" value="${data.id}" hidden="hidden" />
+                                    <input type="number" id="physicalValId_${i}" name="physicalVal_${i}" value="${data.value}" style="width:70px" />
+                                    <p>${data.unitTh}</p>
+                                </div>
+                            </div>
+                            <div class="image-card">
+                                <img src="${data.image}" style="height:50px;width:50px" />
+                            </div>
+                        </div>
+                    </div>`);
+                            break;
+                        case 2:
+                            $('#ftRow').append(`<div class="card-space col-md-4">
+                        <div class="detail-card-wrapper" style="background-color: ${data.bgColor}">
+                            <div class="detail-card">
+                                <div class="title-detail-card">
+                                    <p>${data.descriptTh}</p>
+                                </div>
+                                <div class="input-detail-card d-flex">
+                                    <input type="text" id="physicalId_${i}" name="physical_${i}" value="${data.id}" hidden="hidden" />
+                                    <input type="number" id="physicalValId_${i}" name="physicalVal_${i}" value="${data.value}" style="width:70px" />
+                                    <p>${data.unitTh}</p>
+                                </div>
+                            </div>
+                            <div class="image-card">
+                                <img src="${data.image}" style="height:50px;width:50px" />
+                            </div>
+                        </div>
+                    </div>`);
+                            break;
+                        case 7:
+                            $('#ftRow').append(`<div class="card-space col-md-4">
+                        <div class="detail-card-wrapper" style="background-color: ${data.bgColor}">
+                            <div class="detail-card">
+                                <div class="title-detail-card">
+                                    <p>${data.descriptTh}</p>
+                                </div>
+                                <div class="input-detail-card d-flex">
+                                    <input type="text" id="physicalId_${i}" name="physical_${i}" value="${data.id}" hidden="hidden" />
+                                    <input type="number" id="physicalValId_${i}" name="physicalVal_${i}" value="${data.value}" style="width:70px" />
+                                    <p>${data.unitTh}</p>
+                                </div>
+                            </div>
+                            <div class="image-card">
+                                <img src="${data.image}" style="height:50px;width:50px" />
+                            </div>
+                        </div>
+                    </div>`);
+                            break;
+                        case 3:
+                            $('#sdRow').append(
+                                `<div class="card-space col-6">
+                            <div class="detail-card-wrapper" style="background-color:${data.bgColor};">
+                                <div class="detail-card">
+                                    <div class="title-detail-card">
+                                        <p>${data.descriptTh}</p>
+                                    </div>
+                                    <div class="input-detail-card d-flex">
+                                        <input type="text" id="physicalId_${i}" name="physical_${i}" value="${data.id}" hidden="hidden" />
+                                        <input type="number" id="physicalValId_${i}" name="physicalVal_${i}" value="${data.value}" style="width:70px"/>
+                                        <p> / </p>
+                                        <input type="number" id="physicalValIds_${i}" name="physicalVal_${i}" value="${data.value}" style="width:70px"/>
+                                        <p>${data.unitTh}</p>
+                                    </div>
+                                </div>
+                                <br/>
+                                <div class="detail-card" id="subPress">
+                                    
+                                </div>
+                                <div class="image-card">
+                                    <img src="${data.image}" style="height:50px;width:50px"/>
+                                </div>
+                            </div>
+                        </div>`
+                            )
+                            break;
+                        case 4:
+                            $('#subPress').append(`<div class="title-detail-card">
+                                        <p>ความดันโลหิต 2</p>
+                                    </div>
+                                    <div class="input-detail-card d-flex">
+                                        <input type="text" id="physicalId_${i}" name="physical_${i}" value="${data.id}" hidden="hidden" />
+                                        <input type="number" id="physicalValId_${i}" name="physicalVal_${i}" value="${data.value}" style="width:70px"/>
+                                        <p> / </p>
+                                        <input type="number" id="physicalValIds_${i}" name="physicalVal_${i}" value="${data.value}" style="width:70px"/>
+                                        <p>${data.unitTh}</p>
+                                    </div>`);
+                            break;
+                        case 5:
+                            $('#sdRow').append(
+                                `<div class="card-space col-6">
+                            <div class="detail-card-wrapper" style="background-color:${data.bgColor};">
+                                <div class="detail-card">
+                                    <div class="title-detail-card">
+                                        <p>${data.descriptTh}</p>
+                                    </div>
+                                    <div class="input-detail-card d-flex">
+                                        <input type="text" id="physicalId_${i}" name="physical_${i}" value="${data.id}" hidden="hidden" />
+                                        <input type="number" id="physicalValId_${i}" name="physicalVal_${i}" value="${data.value}" style="width:70px"/>
+                                        <p>${data.unitTh}</p>
+                                    </div>
+                                </div>
+                                <br/>
+                                <div class="detail-card" id="subHeart">
+                                    
+                                </div>
+                                <div class="image-card">
+                                    <img src="${data.image}" style="height:50px;width:50px"/>
+                                </div>
+                            </div>
+                        </div>`
+                            )
+                            break;
+                        case 6:
+                            $('#subHeart').append(`<div class="title-detail-card">
+                                        <p>ชีพจร 2</p>
+                                    </div>
+                                    <div class="input-detail-card d-flex">
+                                        <input type="text" id="physicalId_${i}" name="physical_${i}" value="${data.id}" hidden="hidden" />
+                                        <input type="number" id="physicalValId_${i}" name="physicalVal_${i}" value="${data.value}" style="width:70px"/>
+                                        <p>${data.unitTh}</p>
+                                    </div>`)
+                        default:
+                            $('#sdRow').append(
+                                
+                            )
+                    }
+
+                });
+
+                $('#btn-footer').append(`
+                <div class="detail-button-wrapper d-flex justify-content-center align-items-center">
+                    <button
+                        class="detail-button bg-green btn-border-green d-flex justify-content-center align-items-center"
+                        style="font-size:medium;border:none;" type="button" onclick="onSaveAsync(${resultr.length})">บันทึกผล</button>
+                    <div class="detail-button bg-gray d-flex justify-content-center align-items-center">
+                        <p>ยกเลิก</p>
+                    </div>
+                    <input id="dd_phId" value="${PhysicalID}" hidden="hidden" />
+                </div>`);
+            },
+            error: function (response) {
+                $('#ftRow').html('');
+                $('#sdRow').html('');
+                $('#btn-footer').html('');
+            }
+        });
+    }
+    $("#ddPhysical").on("change", function () {
+        
+    });
+
+    function onSaveAsync(num) {
+        var info = {};
+        info["memberId"] = $('#seletedMemberId').val();
+        info["physicalSetId"] = 3;
+        var physical = [];
+        var isNull = false;
+        for (var i = 0; i < num; i++) {
+            if ($('#physicalValId_' + i).val() != "") {
+                var physId = $('#physicalId_' + i).val();
+                var physVal = "0";
+                switch (physId) {
+                    case "3":
+                        physVal = $('#physicalValId_' + i).val() + "/" + $('#physicalValIds_' + i).val();
+                        break;
+                    case "4":
+                        physVal = $('#physicalValId_' + i).val() + "/" + $('#physicalValIds_' + i).val();
+                        break;
+                    default:
+                       physVal = $('#physicalValId_' + i).val();
+                }
+                
+                var obj = {};
+                obj['physicalChoiceId'] = parseInt(physId);
+                obj['value'] = physVal;
+                physical.push(obj);
+            }
+            else {
+                isNull = true;
+            }
+            
+        }
+        info["physicalDetails"] = physical;
+        if (isNull == true) {
+            alert("กรุณากรอกข้อมูลให้ครบ")
+        }
+        else {
+            $.ajax({
+                type: 'POST',
+                url: '/Patient/Index',
+                headers: {
+                    RequestVerificationToken:
+                        $('input:hidden[name="__RequestVerificationToken"]').val()
+                },
+                contentType: 'application/json; charset=utf-8',
+                dataType: 'json',
+                data: JSON.stringify(info),
+                success: function (response) {
+                    if (response === 'success') {
+                        window.location.reload();
+                    } else {
+                        alert("เกิดข้อผิดพลาด บันทึกไม่สำเร็จ");
+                    }
+                }
+            });
+        }
+        
+    }
+
+    function expand() {
+        $(".search-click").toggleClass("close-btn");
+        $(".input-search-toggle").toggleClass("square");
+        if ($('.search-click').hasClass('close-btn')) {
+            $('.input-search-toggle').focus();
+        } else {
+            $('.input-search-toggle').blur();
+        }
+    }
+
+    $('.search-click').on('click', expand);
+
+    $('#ddPhId').hide();
+    $('#prifile-detail').hide();
+    $('.clear-input').on('click', function () {
+        $('#ddPhId').hide();
+        $('#prifile-detail').hide();
+        $('#ftRow').html('');
+        $('#sdRow').html('');
+        $('#btn-footer').html('');
+        $('#patient-profile-id').html('');
+        $('#search-input-id').val('');
+    })
+
+    $('#patient-profile-id').on('click', '.profile', function () {
+        $('#ddPhId').show();
+        $('#prifile-detail').show();
+        $('#btn-footer').show();
+        $('#seletedMemberId').val($(this).find("#profile-memberId").val());
+        var patientName = $(this).find("#patientname").text();
+        var patientDtail = $(this).find("#patientdetail").text();
+        $('#patientname-show').text(patientName);
+        $('#patientdetail-show').text(patientDtail);
+        $(".patient-name-wrapper .profile").css({ "background-color": "unset", "border": "1px solid #A6B1C2" });
+        $(".patient-name-wrapper .profile #patientname").css({ "color": "#646D82" });
+        $(".patient-name-wrapper .profile #patientdetail").css({ "color": "#2CD889" });
+        $(this).css({ "background-color": "#2CD889", "border": "unset" });
+        $(this).find("p").css("color", "#ffffff");
+        openPhusical();
+    });
+</script>

@@ -1,0 +1,314 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <link rel="stylesheet" href="~/css/site.css" />
+    <link rel="stylesheet" href="~/css/style.css" />
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta http-equiv="Content-Language" content="en">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>@ViewData["Title"] - Help Check</title>
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, shrink-to-fit=no" />
+    <meta name="description" content="This is an example dashboard created using build-in elements and components.">
+    <meta name="msapplication-tap-highlight" content="no">
+    <link href="~/main.css" rel="stylesheet">
+    <script src="~/js/jquery-3.6.0.js"></script>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.10.19/css/jquery.dataTables.min.css" />
+    @*<script src="https://code.jquery.com/jquery-3.3.1.js"></script>*@
+    <script src="https://cdn.datatables.net/1.10.19/js/jquery.dataTables.min.js"></script>
+</head>
+
+<body>
+    <div class="app-container app-theme-white body-tabs-shadow fixed-sidebar fixed-header">
+        <div class="app-header header-shadow">
+            <div class="app-header__logo">
+                <div class="logo-src" style="margin-top: -20px;">
+                    <img src="~/assets/images/phra_mongkut_klao_hospital.png" width="45px;" height="45px;" />
+                </div>
+                <div class="header__pane ml-auto col-12">
+                    โรงพยาบาลพระมงกุฏเกล้า
+                </div>
+            </div>
+            <div class="app-header__mobile-menu">
+                <div class="hamburger-menu">
+                    <input id="menu__toggle" type="checkbox" />
+                    <label class="menu__btn" for="menu__toggle">
+                        <span></span>
+                    </label>
+
+                    <ul class="menu__box">
+                        @if (ViewData["useMenu"].ToString() == "yes")
+                        {
+                            if (ViewData["roleId"] != null && ViewData["roleId"].ToString() != "1")
+                            {
+                                <li class="menu__item">
+                                    <a href="/Doctor/Index" class="nav-link" onclick="">
+                                        @*<i class="nav-link-icon fa fa-database"> </i>*@
+                                        ข้อมูลผู้ป่วย
+                                    </a>
+                                    <script>
+                                        function checkValidate() {
+                                            if (flag == 0) {
+                                                console.log('flag = 0')
+                                            }
+                                            else {
+                                                console.log('flag = other')
+                                            }
+                                        }
+
+                                    </script>
+                                </li>
+                            }
+
+                            if (ViewData["roleId"] == null || ViewData["roleId"].ToString() == "1")
+                            {
+                                <li class="btn-group nav-item">
+                                    <a href="/Appointment/Index" class="menu__item">
+                                        ตารางนัดตรวจ
+                                    </a>
+                                </li>
+                                <li class="menu__item menu-setting">
+                                    <a class="menu__item">
+                                        @*<i class="nav-link-icon fa fa-database"> </i>*@
+                                        ตั้งค่า
+                                    </a>
+                                    <div class="setting-list-wrapper">
+                                        <div class="setting-list">
+                                            <a href="/Setting/UserSetting" class="nav-link">
+                                                ข้อมูลผู้ใช้งาน
+                                            </a>
+                                            <a href="/Setting/UserProfile" class="nav-link">
+                                                เพิ่มผู้ใช้งาน
+                                            </a>
+                                            <a href="/Setting/WorkPlace" class="nav-link">
+                                                เพิ่มที่ทำงาน
+                                            </a>
+                                            <a href="/Setting/JobType" class="nav-link">
+                                                เพิ่มประเภทงาน
+                                            </a>
+                                        </div>
+                                    </div>
+                                </li>
+                            }
+
+                        }
+                        else
+                        {
+                            if (ViewData["roleId"].ToString() != "5")
+                            {
+                                <li class="nav-item">
+                                    <a href="/Patient/Index" class="menu__item">
+                                        @*<i class="nav-link-icon fa fa-database"> </i>*@
+                                        ข้อมูลผู้ป่วย
+                                    </a>
+                                </li>
+                            }
+                            else
+                            {
+                                <li class="nav-item">
+                                    <a href="/PatientDetail/Index" class="menu__item">
+                                        @*<i class="nav-link-icon fa fa-database"> </i>*@
+                                        ข้อมูลผู้ป่วย
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a href="/Question/Question" class="menu__item">
+                                        @*<i class="nav-link-icon fa fa-database"> </i>*@
+                                        แบบสอบถามสุขภาพ
+                                    </a>
+                                </li>
+                            }
+
+                        }
+                        <li class="btn-group nav-item">
+                            <a href="/Authen/Logout" class="menu__item" style="color:red">
+                                ออกจากระบบ
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            <div class="app-header__menu">
+                <span>
+                    <button type="button"
+                        class="btn-icon btn-icon-only btn btn-primary btn-sm mobile-toggle-header-nav">
+                        <span class="btn-icon-wrapper">
+                            <i class="fa fa-ellipsis-v fa-w-6"></i>
+                        </span>
+                    </button>
+                </span>
+            </div>
+            <div class="app-header__content">
+                <div class="app-header-left">
+                    <ul class="header-menu nav">
+                        @if (ViewData["useMenu"].ToString() == "yes")
+                        {
+                            if (ViewData["roleId"] != null && ViewData["roleId"].ToString() != "1")
+                            {
+                                <li class="nav-item">
+                                    <a href="/Doctor/Index" class="nav-link" onclick="">
+                                        @*<i class="nav-link-icon fa fa-database"> </i>*@
+                                        ข้อมูลผู้ป่วย
+                                    </a>
+                                    <script>
+                                        function checkValidate() {
+                                            if (flag == 0) {
+                                                console.log('flag = 0')
+                                            }
+                                            else {
+                                                console.log('flag = other')
+                                            }
+                                        }
+
+                                    </script>
+                                </li>
+                            }
+
+                            if (ViewData["roleId"] == null || ViewData["roleId"].ToString() == "1")
+                            {
+                                <li class="btn-group nav-item">
+                                    <a href="/Appointment/Index" class="nav-link">
+                                        ตารางนัดตรวจ
+                                    </a>
+                                </li>
+                                <li class="nav-item menu-setting">
+                                    <a class="nav-link">
+                                        @*<i class="nav-link-icon fa fa-database"> </i>*@
+                                        ตั้งค่า
+                                    </a>
+                                    <div class="setting-list-wrapper">
+                                        <div class="setting-list">
+                                            <a href="/Setting/UserSetting" class="nav-link">
+                                                ข้อมูลผู้ใช้งาน
+                                            </a>
+                                            <a href="/Setting/UserProfile" class="nav-link">
+                                                เพิ่มผู้ใช้งาน
+                                            </a>
+                                            <a href="/Setting/WorkPlace" class="nav-link">
+                                                เพิ่มที่ทำงาน
+                                            </a>
+                                            <a href="/Setting/JobType" class="nav-link">
+                                                เพิ่มประเภทงาน
+                                            </a>
+                                        </div>
+                                    </div>
+                                </li>
+                            }
+
+                        }
+                        else
+                        {
+                            if (ViewData["roleId"].ToString() != "5")
+                            {
+                                <li class="nav-item">
+                                    <a href="/Patient/Index" class="nav-link">
+                                        @*<i class="nav-link-icon fa fa-database"> </i>*@
+                                        ข้อมูลผู้ป่วย
+                                    </a>
+                                </li>
+                            }
+                            else
+                            {
+                                <li class="nav-item">
+                                    <a href="/PatientDetail/Index" class="nav-link">
+                                        @*<i class="nav-link-icon fa fa-database"> </i>*@
+                                        ข้อมูลผู้ป่วย
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a href="/Question/Question" class="nav-link">
+                                        @*<i class="nav-link-icon fa fa-database"> </i>*@
+                                        แบบสอบถามสุขภาพ
+                                    </a>
+                                </li>
+                            }
+
+                        }
+                        <li class="btn-group nav-item">
+                            <a href="/Authen/Logout" class="nav-link" style="color:red">
+                                ออกจากระบบ
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+                <div class="app-header-right">
+                    <div class="header-btn-lg pr-0">
+                        <div class="widget-content p-0">
+                            <div class="widget-content-wrapper">
+                                <div class="widget-content-left">
+                                    <div class="btn-group" id="profileImgId">
+                                        <i class="fa fa-angle-down ml-2 opacity-8"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                                <div class="widget-content-left  ml-3 header-user-info">
+                                    <div class="widget-heading" id="userName"></div>
+                                    <div class="widget-subheading" id="roleName"></div>
+                                    <input type="text" id="userId" hidden="hidden" />
+                                    <script>
+                                        $.ajax({
+                                            type: "GET",
+                                            url: "/Index?handler=UserInfo",
+                                            success: function (response) {
+                                                $('#profileImgId').html('');
+                                                $('#userName').html('');
+                                                if (response) {
+                                                    $('#profileImgId').append(`<img width="42" height="42" class="rounded-circle" src="${response.imageBase64}" />`);
+                                                    $('#userName').append(`<p>${response.fullName}</p>`);
+                                                    $('#userId').val(response.id);
+                                                }
+                                            }
+                                        });
+                                    </script>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="app-main">
+            <div class="app-main__outer">
+                <div class="app-main__inner">
+                    @*<div class="app-page-title"></div>*@
+
+                    @RenderBody()
+
+                </div>
+                <div class="app-wrapper-footer">
+                    <div class="app-footer">
+                        <div class="app-footer__inner">
+                            <div class="app-footer-right">
+                                <ul class="nav">
+                                    <li class="nav-item">
+                                        &copy; 2564 - HelpCheck_Web
+                                    </li>
+                                    
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+
+        @*<div class="app-wrapper-footer">
+            <div class="app-footer">
+            <div class="app-footer__inner">
+            &copy; 2564 - HelpCheck_Web - <a asp-area="" asp-page="/Privacy">Privacy</a>
+            </div>
+            </div>
+            </div>*@
+    </div>
+    
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    <script type="text/javascript" src="~/assets/scripts/main.js"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+
+</html>

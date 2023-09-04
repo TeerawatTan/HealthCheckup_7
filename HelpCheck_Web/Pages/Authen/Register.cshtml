@@ -1,0 +1,458 @@
+﻿@page
+@model HelpCheck_Web.Pages.Authen.RegisterModel
+@{
+    ViewData["Title"] = "Register";
+    Layout = "_Layout_auth";
+}
+<head>
+      <script src="~/js/moment.min.js"></script>
+      <link rel="stylesheet" href="//code.jquery.com/ui/1.13.1/themes/base/jquery-ui.css">
+      <link rel="stylesheet" href="/resources/demos/style.css">
+      <script src="https://code.jquery.com/jquery-3.6.0.js"></script>
+      <script src="https://code.jquery.com/ui/1.13.1/jquery-ui.js"></script>
+</head>
+<style>
+    .login-form {
+        border: none;
+        border-bottom: 2px solid #E9E9F0 !important;
+        background-color: transparent !important;
+        color: #648D82;
+    }
+    .btn-error {
+        color: #fff;
+        background-color: red;
+        border-color: red;
+    }
+    button.mt-1.btn.btn-error {
+    border: 1px solid red;
+}
+
+    button.mt-1.btn.btn-error:hover, .detail-button:hover, #nextBtn:hover {
+        background-color: #ffffff !important;
+        color: red !important;
+    }
+</style>
+<div class="row" >
+    <div class="col-md-12 col-sm-3">
+        <div style='width:50%;text-align:center;margin: auto;'>
+            <div class="row">
+                <div class="col-md-3">
+                    <img src="~/assets/images/phra_mongkut_klao_hospital.png" height="150px;" width="150px;" />
+                </div>
+                <div class="col-md-9" style='text-align:left;'>
+                    <br /><br />
+                    <h4 style="color:#308B57;text-align:center" >โรงพยาบาลพระมงกุฏเกล้า</h4>
+                    <h4 style="color: dimgray; text-align: center">สมัครสมาชิก</h4>
+                </div>
+            </div>
+            <br />
+
+        </div>
+        <div style="border: solid 1px; margin: auto; padding: 10px; border-radius: 10px; font-size: 18px; width: 100%">
+            <div>
+                <div class="row">
+                    <div class="col-md-5 col-sm-12" style="text-align:center">
+                        <label>เลขบัตรประชาชน</label>
+                    </div>
+                    <div class="col-md-7 col-sm-12" style="width:100%">
+                        <input id="cardH" onkeyup="idsend()" maxlength='13' style="width:100%;float: left;" />
+                    </div>
+                </div>
+                <hr style="background-color:black;width: 95%;">
+                <div id="myDIV" hidden>
+                    <div class="row">
+                        <div class="col-md-5" style="margin-bottom: 5px; padding-left: 30px;">
+                            <label>คำนำหน้า</label>
+                        </div>
+                        <div class="col-md-7" style='text-align:left;'>
+                            <input id="vnSector" style="width: 100%;" name="Mobility"/>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-5" style="margin-bottom: 5px; padding-left: 30px;">
+                            <label>ชื่อ</label>
+                        </div>
+                        <div class="col-md-7">
+                            <input id="firstname" style="width: 100%; float: left;" />
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-5" style="margin-bottom: 5px; padding-left: 30px;">
+                            <label>นามสกุล</label>
+                        </div>
+                        <div class="col-md-7">
+                            <input id="lastname" style="width: 100%; float: left;" />
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-5" style="margin-bottom: 5px; padding-left: 30px;">
+                            <label>วันเกิด</label>
+                        </div>
+                        <div class="col-md-7">
+                            <input id="datepicker" style="width: 100%; float: left;" />
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-5" style="margin-bottom: 5px; padding-left: 30px;">
+                            <label>เพศ</label>
+                        </div>
+                        <div class="col-md-7" style='text-align:left;'>
+                            <select style="width: 100%;" id="vnSex" onchange="clickselecttitle()">
+                                <option id="0">ชาย</option>
+                                <option id="1">หญิง</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-5" style="margin-bottom: 5px; padding-left: 30px;">
+                            <label>อีเมล</label>
+                        </div>
+                        <div class="col-md-7">
+                            <input id="email" style="width: 100%; float: left;" />
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-5" style="margin-bottom: 5px; padding-left: 30px;">
+                            <label>หน่วยงาน/สังกัด</label>
+                        </div>
+                        <div class="col-md-7">
+                            <select id="agency" style="width: 100%;"></select>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-5" style="margin-bottom: 5px; padding-left: 30px;">
+                            <label>สถานที่ปฎิบัติงาน</label>
+                        </div>
+                        <div class="col-md-7" style='text-align:left;'>
+                            <select id="vnWorkPlace" style="width: 100%;" ></select>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-5" style="margin-bottom: 5px; padding-left: 30px;">
+                            <label>ตำแหน่ง/วิชาชีพ</label>
+                        </div>
+                        <div class="col-md-7" style='text-align:left;'>
+                            <select id="vnJobType" style="width: 100%; "></select>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-5" style="margin-bottom: 5px; padding-left: 30px;">
+                            <label>สิทธิ์การรักษา</label>
+                        </div>
+                        <div class="col-md-7" style='text-align:left;'>
+                            <select id="Treatment" style="width: 100%; "></select>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-5" style="margin-bottom: 5px; padding-left: 30px;">
+                            <label>เบอร์โทร</label>
+                        </div>
+                        <div class="col-md-7">
+                            <input id="phonenumber" style="width: 100%; float: left;" maxlength='10' />
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-5" style="margin-bottom: 5px; padding-left: 30px;">
+                            <label>HN / ID ของผู้ใช้งาน</label>
+                        </div>
+                        <div class="col-md-7">
+                            <input id="HN" style="width: 100%; float: left;" disabled />
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-5" style="margin-bottom: 5px; padding-left: 30px;">
+                            <label>Password</label>
+                        </div>
+                        <div class="col-md-7">
+                            <input id="passwordRegis" type="password" style="width:100%;float: left;" placeholder="กำหนดเอง" autocomplete="false"/>
+                        </div>
+                    </div>
+                    <br /><br />
+                    <div style="width: 100%;">
+                        <button type="button" class="mt-1 btn btn-primary" style="font-size: medium; left: 50%; -ms-transform: translate(-50%, -50%); transform: translate(-50%, -0%);" onclick="onSave()">สมัครสมาชิก</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal " id="event-modal2" tabindex="0" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" style="margin:auto">
+    <div class="modal-dialog" style="margin:100px auto auto auto;width:auto;max-width:700px">
+        <div class="modal-content" style='border-radius: 20px;'>
+            <div class="modal-body" style="text-align: center;">
+                <h1>กรุณาตรวจสอบเลขประตัวของท่านอีกครั้ง หรือ กรุณาติดต่อลงทะเบียนกับทาง โรงพยาบาลอีกครั้ง</h1>
+                <button type="button" class="mt-1 btn btn-error" style="font-size:x-large;width: 100px;" onclick="closemodal(2)">ปิด</button>
+            </div>
+        </div>
+        @*/.modal-content*@
+    </div>
+    @*/.modal-dialog*@
+</div>
+<div class="modal " id="event-modal1" tabindex="0" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" style="margin:auto">
+    <div class="modal-dialog" style="margin:100px auto auto auto;width:auto;max-width:550px">
+        <div class="modal-content" style='border-radius: 20px;'>
+            <div class="modal-body" style="text-align: center;">
+                <h1>กรุณากรอกข้อมูลให้ครบถ้วน</h1>
+                <button type="button" class="mt-1 btn btn-error" style="font-size:x-large;width: 100px;" onclick="closemodal(1)">ปิด</button>
+            </div>
+        </div>
+        @*/.modal-content*@
+    </div>
+    @*/.modal-dialog*@
+</div>
+<div class="modal " id="event-modal-save" tabindex="0" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" style="margin:auto">
+       <div class="modal-dialog" style="margin:100px auto auto auto;width:auto;max-width:550px">
+        <div class="modal-content" style='border-radius: 20px;'>
+            <div class="modal-body" style="text-align: center;">
+                <h1>บันทึกสำเร็จ</h1>
+                <button type="button" class="mt-1 btn btn-error" style="font-size:x-large;width: 100px;" onclick="clicksucc()">ปิด</button>
+            </div>
+        </div>
+        @*/.modal-content*@
+    </div>
+        @*/.modal-dialog*@
+    </div>
+
+<script>
+    $(document).ready(function () {
+        $('#datepicker').datepicker({ dateFormat: 'dd/mm/yy' });
+        getWorkPlace()
+        getJobType()
+        getTreatment()
+        getAgencyType()
+        $('#passwordRegis').val() = '';
+    });
+    function closemodal(val) {
+        if(val == 1){
+            var modal = document.getElementById("event-modal1");
+            modal.style.display = "none";
+        }else{
+            var modal2 = document.getElementById("event-modal2");
+            modal2.style.display = "none";
+        }
+    }
+    function idsend() {
+    let card = $('#cardH').val().length;
+    let idcard = parseInt($('#cardH').val());
+    console.log(JSON.stringify(idcard));
+        if(card ==  13){
+            $.ajax({
+                type: 'GET',
+                url: '/Authen/Register?handler=User',
+                contentType: 'application/json; charset=utf-8',
+                dataType: 'json',
+                data: { "idCard": idcard },
+                success: function (response) {
+                    console.log("getuser");
+                    console.log(response );
+                    if(response != null){
+                        document.getElementById("myDIV").hidden = false;
+                        document.getElementById("cardH").disabled = true;
+                        document.getElementById('vnSector').value=response.titleName;
+                        document.getElementById('firstname').value=response.firstName;
+                        document.getElementById('lastname').value=response.lastName;
+                        var date = moment(response.birthDate).format("DD/MM/YYYY");
+                        var dateD = date.split("/")[0];
+                        var dateM = date.split("/")[1];
+                        var dateY = date.split("/")[2];
+                        var myDate = new Date(dateY,dateM - 1 ,dateD);
+                        $('#datepicker').datepicker({ dateFormat: 'dd/mm/yy' });
+                        $("#datepicker").datepicker('setDate', myDate);
+                        document.getElementById("vnSex").selectedIndex= response.gender ;
+                        document.getElementById('vnWorkPlace').value = response.workPlaceID == null ? '14' : response.jobTypeID;
+                        document.getElementById('vnJobType').value = response.jobTypeID == null ? '31' : response.jobTypeID;
+                        document.getElementById('agency').value = response.jobTypeID == null ? '2' : response.jobTypeID;
+                        document.getElementById('phonenumber').value=response.phoneNo;
+                        document.getElementById('HN').value=response.hn;
+                    }else{
+                        var modal2 = document.getElementById("event-modal2");
+                        modal2.style.display = "block";
+                    }
+                },
+                error: function () {
+                    alert("กรุณาตรวจสอบเลขประตัวของท่านอีกครั้ง หรือ ติดต่อลงทะเบียนกับทาง รพ.อีกครั้ง");
+                    return;
+                }
+            });
+            
+        }
+    }
+    function renderSelector(dataArray, appendElement) {
+        dataArray.forEach((data) => {
+            $("<option/>")
+                .val(data.id)
+                .text(data.name)
+                .appendTo(appendElement)
+        })
+    }
+    function clicksucc() {
+        window.location.href = '/Index'
+    }
+    function onSave() {
+        
+        var date = $('#datepicker').val();
+        var dateD = date.split("/")[0];
+        var dateM = date.split("/")[1];
+        var dateY = date.split("/")[2];
+        var myDate = dateY + "-" + dateM + "-" + dateD + "T00:00:00.000Z";
+        var username = $('#HN').val();
+        var password = $('#passwordRegis').val();
+        var firstN = $('#firstname').val();
+        var lastN = $('#lastname').val();
+        var email = $('#email').val();
+        var agency = $('#agency').val();
+        var workP = parseInt($('#vnWorkPlace').val());
+        var jobT = parseInt($('#vnJobType').val());
+        var phone = $('#phonenumber').val();
+        if (username == null) {
+            alert('กรุณากรอกข้อมูลให้ครบ')
+        } else if (password == null) {
+            alert('กรุณากรอก Password ( รหัสผ่าน )')
+        } else if (firstN == null) {
+            alert('กรุณากรอก ชื่อจริง')
+        } else if (lastN == null) {
+            alert('กรุณากรอก นามสกุลจริง')
+        } else if (email == null) {
+            alert('กรุณากรอก Email หากไม่มีให้ติดต่อ สคม. เพื่อขอ Email กลาง')
+        } else if (agency == null) {
+            alert('กรุณากรอก หน่วยงาน/ต้นสังกัด')
+        } else if (workP == null) {
+            alert('กรุณากรอก สถานที่ทำงาน')
+        } else if (jobT == null) {
+            alert('กรุณากรอก ประเภท')
+        } else if (phone == null) {
+            alert('กรุณากรอก เบอร์โทรศัพย์')
+        }
+        else {
+            var data = {
+                'Username': $('#HN').val(),
+                'Password': $('#passwordRegis').val(),
+                'TitleName': $('#vnSector').val(),
+                'FirstName': $('#firstname').val(),
+                'LastName': $('#lastname').val(),
+                'IdCard': $('#cardH').val(),
+                'BirthDate': myDate,
+                'Gender': $('#vnSex').val() == 'ชาย' ? 0 : 1,
+                'Email': $('#email').val(),
+                'Agency': $('#agency').val(),
+                'WorkPlaceID': parseInt($('#vnWorkPlace').val()),
+                'JobTypeID': parseInt($('#vnJobType').val()),
+                'PhoneNo': $('#phonenumber').val(),
+                'Hn': $('#HN').val(),
+                'RoleID': 5,
+                'TreatmentID': parseInt($('#Treatment').val())
+            };
+            if (data.Password != null && data.Password != "" && data.PhoneNo != null && data.PhoneNo != "") {
+                $.ajax({
+                    type: 'GET',
+                    url: '/Authen/Register?handler=Register',
+                    contentType: 'application/json; charset=utf-8',
+                    dataType: 'json',
+                    data: data,
+                    success: function (response) {
+                        if (response === 'success') {
+                            var modal3 = document.getElementById("event-modal-save");
+                            modal3.style.display = "block";
+
+                        } else {
+                            alert("เกิดข้อผิดพลาด บันทึกไม่สำเร็จ");
+                        }
+                    }
+                });
+            } else {
+                var modal = document.getElementById("event-modal1");
+                modal.style.display = "block";
+            }
+        }
+        
+        console.log('onSave');
+        console.log(data);
+    }
+
+    //function getTitle() {
+    //    $.ajax({
+    //        type: 'GET',
+    //        url: '/Authen/Register?handler=Title',
+    //        contentType: 'application/json; charset=utf-8',
+    //        dataType: 'json',
+    //        success: function (response) {
+    //            console.log("getTitle");
+    //            console.log(response );
+    //            renderSelector(response, "#vnSector");
+    //        },
+    //        error: function () {
+    //            alert("เกิดข้อผิดพลาดบางอย่าง เข้าสู่ระบบไม่สำเร็จ");
+    //            return;
+    //        }
+    //    });
+    //}
+
+    function getTreatment() {
+        $.ajax({
+            type: 'GET',
+            url: '/Authen/Register?handler=Treatment',
+            contentType: 'application/json; charset=utf-8',
+            dataType: 'json',
+            success: function (response) {
+                console.log("getTreatment");
+                console.log(response);
+                renderSelector(response, "#Treatment");
+            },
+            error: function () {
+                alert("เกิดข้อผิดพลาดบางอย่าง เข้าสู่ระบบไม่สำเร็จ");
+                return;
+            }
+        });
+    }
+    function getWorkPlace() {
+        $.ajax({
+            type: 'GET',
+            url: '/Authen/Register?handler=WorkPlace',
+            contentType: 'application/json; charset=utf-8',
+            dataType: 'json',
+            success: function (response) {
+                console.log("getWorkPlace");
+                console.log(response );
+                renderSelector(response, "#vnWorkPlace");
+            },
+            error: function () {
+                alert("เกิดข้อผิดพลาดบางอย่าง เข้าสู่ระบบไม่สำเร็จ");
+                return;
+            }
+        });
+    }
+    function getJobType() {
+        $.ajax({
+            type: 'GET',
+            url: '/Authen/Register?handler=JobType',
+            contentType: 'application/json; charset=utf-8',
+            dataType: 'json',
+            success: function (response) {
+                console.log("getJobType");
+                console.log(response );
+                renderSelector(response, "#vnJobType");
+            },
+            error: function () {
+                alert("เกิดข้อผิดพลาดบางอย่าง เข้าสู่ระบบไม่สำเร็จ");
+                return;
+            }
+        });
+    }
+    function getAgencyType() {
+        $.ajax({
+            type: 'GET',
+            url: '/Authen/Register?handler=AgencyType',
+            contentType: 'application/json; charset=utf-8',
+            dataType: 'json',
+            success: function (response) {
+                console.log("getagencyType");
+                console.log(response);
+                renderSelector(response, "#agency");
+            },
+            error: function () {
+                alert("เกิดข้อผิดพลาดบางอย่าง เข้าสู่ระบบไม่สำเร็จ");
+                return;
+            }
+        });
+    }
+</script>
