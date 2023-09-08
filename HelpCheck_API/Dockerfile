@@ -1,20 +1,16 @@
-FROM mcr.microsoft.com/dotnet/aspnet:5.0-focal AS base
+#See https://aka.ms/customizecontainer to learn how to customize your debug container and how Visual Studio uses this Dockerfile to build your images for faster debugging.
+
+FROM mcr.microsoft.com/dotnet/aspnet:7.0 AS base
 WORKDIR /app
-EXPOSE 4000
+EXPOSE 80
+EXPOSE 443
 
-ENV ASPNETCORE_URLS=http://+:4000
-
-# Creates a non-root user with an explicit UID and adds permission to access the /app folder
-# For more info, please refer to https://aka.ms/vscode-docker-dotnet-configure-containers
-RUN adduser -u 5678 --disabled-password --gecos "" appuser && chown -R appuser /app
-USER appuser
-
-FROM mcr.microsoft.com/dotnet/sdk:5.0-focal AS build
+FROM mcr.microsoft.com/dotnet/sdk:7.0 AS build
 WORKDIR /src
-COPY ["HelpCheck_API.csproj", "./"]
-RUN dotnet restore "HelpCheck_API.csproj"
+COPY ["HelpCheck_API/HelpCheck_API.csproj", "HelpCheck_API/"]
+RUN dotnet restore "HelpCheck_API/HelpCheck_API.csproj"
 COPY . .
-WORKDIR "/src/."
+WORKDIR "/src/HelpCheck_API"
 RUN dotnet build "HelpCheck_API.csproj" -c Release -o /app/build
 
 FROM build AS publish
