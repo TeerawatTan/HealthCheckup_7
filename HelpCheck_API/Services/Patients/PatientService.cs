@@ -212,19 +212,25 @@ namespace HelpCheck_API.Services.Patients
 
             try
             {
-                var cli = new RestClient("http://202.28.80.34:8080/ords/dev/HEALTH_CHECK/XRAY_CHECK/" + idcard.Trim().Replace("-", ""))
-                {
-                    Timeout = -1
-                };
-                var req = new RestRequest(Method.GET);
-                req.AddHeader("Content-Type", "application/json");
-                IRestResponse response = await cli.ExecuteAsync(req);
-                var data = JsonConvert.DeserializeObject<DataXRayResult>(response.Content);
-                
+                //var cli = new RestClient("http://202.28.80.34:8080/ords/dev/HEALTH_CHECK/XRAY_CHECK/" + idcard.Trim().Replace("-", ""))
+                //{
+                //    Timeout = -1
+                //};
+                //var req = new RestRequest(Method.GET);
+                //req.AddHeader("Content-Type", "application/json");
+                //IRestResponse response = await cli.ExecuteAsync(req);
+                //var data = JsonConvert.DeserializeObject<DataXRayResult>(response.Content);
+
+                //return new ResultResponse()
+                //{
+                //    IsSuccess = true,
+                //    Data = data
+                //};
+
                 return new ResultResponse()
                 {
                     IsSuccess = true,
-                    Data = data
+                    Data = new DataXRayResult()
                 };
             }
             catch (Exception ex)
@@ -250,19 +256,25 @@ namespace HelpCheck_API.Services.Patients
 
             try
             {
-                var cli = new RestClient("http://202.28.80.34:8080/ords/dev/HEALTH_CHECK/LAB_CHECK/" + hn)
-                {
-                    Timeout = -1
-                };
-                var req = new RestRequest(Method.GET);
-                req.AddHeader("Content-Type", "application/json");
-                IRestResponse response = await cli.ExecuteAsync(req);
-                var data = JsonConvert.DeserializeObject<DataBloodResult>(response.Content);
+            //    var cli = new RestClient("http://202.28.80.34:8080/ords/dev/HEALTH_CHECK/LAB_CHECK/" + hn)
+            //    {
+            //        Timeout = -1
+            //    };
+            //    var req = new RestRequest(Method.GET);
+            //    req.AddHeader("Content-Type", "application/json");
+            //    IRestResponse response = await cli.ExecuteAsync(req);
+            //    var data = JsonConvert.DeserializeObject<DataBloodResult>(response.Content);
+
+            //return new ResultResponse()
+            //{
+            //    IsSuccess = true,
+            //    Data = data
+            //};
 
                 return new ResultResponse()
                 {
                     IsSuccess = true,
-                    Data = data
+                    Data = new DataBloodResult()
                 };
             }
             catch (Exception ex)
@@ -288,19 +300,25 @@ namespace HelpCheck_API.Services.Patients
 
             try
             {
-                var cli = new RestClient("http://dev34.pmk.ac.th:8080/ords/dev/HEALTH_CHECK/LAB_SMEAR/" + hn)
-                {
-                    Timeout = -1
-                };
-                var req = new RestRequest(Method.GET);
-                req.AddHeader("Content-Type", "application/json");
-                IRestResponse response = await cli.ExecuteAsync(req);
-                var data = JsonConvert.DeserializeObject<GetLabSmearDto>(response.Content);
+                //var cli = new RestClient("http://dev34.pmk.ac.th:8080/ords/dev/HEALTH_CHECK/LAB_SMEAR/" + hn)
+                //{
+                //    Timeout = -1
+                //};
+                //var req = new RestRequest(Method.GET);
+                //req.AddHeader("Content-Type", "application/json");
+                //IRestResponse response = await cli.ExecuteAsync(req);
+                //var data = JsonConvert.DeserializeObject<GetLabSmearDto>(response.Content);
+
+                //return new ResultResponse()
+                //{
+                //    IsSuccess = true,
+                //    Data = data
+                //};
 
                 return new ResultResponse()
                 {
                     IsSuccess = true,
-                    Data = data
+                    Data = new GetLabSmearDto()
                 };
             }
             catch (Exception ex)

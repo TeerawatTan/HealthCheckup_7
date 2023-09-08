@@ -43,18 +43,18 @@ namespace HelpCheck_API.Services.Reports
         {
             try
             {
-                var cli = new RestClient("http://dev34.pmk.ac.th:8080/ords/dev/HEALTH_CHECK/Check_result/" + idcard.Trim().Replace("-", ""))
-                {
-                    Timeout = -1
-                };
-                var req = new RestRequest(Method.GET);
-                req.AddHeader("Content-Type", "application/json");
-                IRestResponse response = await cli.ExecuteAsync(req);
-                var data = JsonConvert.DeserializeObject<CheckResultFromPMKDto>(response.Content);
-                if (data is not null && data.Data is not null && data.Data.Count > 0)
-                {
-                    return data.Data.LastOrDefault();
-                }
+                //var cli = new RestClient("http://dev34.pmk.ac.th:8080/ords/dev/HEALTH_CHECK/Check_result/" + idcard.Trim().Replace("-", ""))
+                //{
+                //    Timeout = -1
+                //};
+                //var req = new RestRequest(Method.GET);
+                //req.AddHeader("Content-Type", "application/json");
+                //IRestResponse response = await cli.ExecuteAsync(req);
+                //var data = JsonConvert.DeserializeObject<CheckResultFromPMKDto>(response.Content);
+                //if (data is not null && data.Data is not null && data.Data.Count > 0)
+                //{
+                //    return data.Data.LastOrDefault();
+                //}
                 return null;
             }
             catch (System.Exception ex)
@@ -67,18 +67,18 @@ namespace HelpCheck_API.Services.Reports
         {
             try
             {
-                var cli = new RestClient("http://dev34.pmk.ac.th:8080/ords/dev/HEALTH_CHECK/Check_result_to_day/" + idcard.Trim().Replace("-", ""))
-                {
-                    Timeout = -1
-                };
-                var req = new RestRequest(Method.GET);
-                req.AddHeader("Content-Type", "application/json");
-                IRestResponse response = await cli.ExecuteAsync(req);
-                var data = JsonConvert.DeserializeObject<CheckResultToDayFromPMKDto>(response.Content);
-                if (data is not null && data.Data is not null && data.Data.Count > 0)
-                {
-                    return data.Data.LastOrDefault();
-                }
+                //var cli = new RestClient("http://dev34.pmk.ac.th:8080/ords/dev/HEALTH_CHECK/Check_result_to_day/" + idcard.Trim().Replace("-", ""))
+                //{
+                //    Timeout = -1
+                //};
+                //var req = new RestRequest(Method.GET);
+                //req.AddHeader("Content-Type", "application/json");
+                //IRestResponse response = await cli.ExecuteAsync(req);
+                //var data = JsonConvert.DeserializeObject<CheckResultToDayFromPMKDto>(response.Content);
+                //if (data is not null && data.Data is not null && data.Data.Count > 0)
+                //{
+                //    return data.Data.LastOrDefault();
+                //}
                 return null;
             }
             catch (System.Exception ex)

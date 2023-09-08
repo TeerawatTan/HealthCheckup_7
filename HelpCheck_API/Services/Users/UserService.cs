@@ -554,37 +554,37 @@ namespace HelpCheck_API.Services.Users
                 //    };
                 //}
 
-                var cli = new RestClient("http://202.28.80.34:8080/ords/dev/patient/check/" + idCard.Trim().Replace("-", ""))
-                {
-                    Timeout = -1
-                };
-                var req = new RestRequest(Method.GET);
-                req.AddHeader("Content-Type", "application/json");
-                IRestResponse response = cli.Execute(req);
-                if (response.StatusCode == HttpStatusCode.OK)
-                {
-                    var data = JsonConvert.DeserializeObject<GetPatientFromApiDto>(response.Content);
-                    var userDto = new GetUserDto();
-                    if (data != null)
-                    {
-                        DateTime? dataBirthDate = DateTime.Parse(data.birth_year + "-" + data.birth_month + "-" + data.birth_day, System.Globalization.CultureInfo.InvariantCulture);
-                        userDto.IDCard = !string.IsNullOrWhiteSpace(data.id_card) ? idCard.Trim().Replace("-", "") : idCard;
-                        userDto.Hn = data.hn;
-                        userDto.TitleName = !string.IsNullOrWhiteSpace(data.prename) ? data.prename.Trim() : null;
-                        userDto.FirstName = data.name;
-                        userDto.LastName = data.surname;
-                        userDto.FullName = data.prename + " " + data.name + " " + data.surname;
-                        userDto.Gender = !string.IsNullOrWhiteSpace(data.sex) ? data.sex == "M" || data.sex == "m" ? 0 : 1 : null;
-                        userDto.BirthDate = dataBirthDate;
-                        userDto.Age = DateTimeUtility.CalculateAge(dataBirthDate);
-                        userDto.Agency = data.depend;
-                    }
-                    return new ResultResponse()
-                    {
-                        IsSuccess = true,
-                        Data = userDto
-                    };
-                }
+                //var cli = new RestClient("http://202.28.80.34:8080/ords/dev/patient/check/" + idCard.Trim().Replace("-", ""))
+                //{
+                //    Timeout = -1
+                //};
+                //var req = new RestRequest(Method.GET);
+                //req.AddHeader("Content-Type", "application/json");
+                //IRestResponse response = cli.Execute(req);
+                //if (response.StatusCode == HttpStatusCode.OK)
+                //{
+                //    var data = JsonConvert.DeserializeObject<GetPatientFromApiDto>(response.Content);
+                //    var userDto = new GetUserDto();
+                //    if (data != null)
+                //    {
+                //        DateTime? dataBirthDate = DateTime.Parse(data.birth_year + "-" + data.birth_month + "-" + data.birth_day, System.Globalization.CultureInfo.InvariantCulture);
+                //        userDto.IDCard = !string.IsNullOrWhiteSpace(data.id_card) ? idCard.Trim().Replace("-", "") : idCard;
+                //        userDto.Hn = data.hn;
+                //        userDto.TitleName = !string.IsNullOrWhiteSpace(data.prename) ? data.prename.Trim() : null;
+                //        userDto.FirstName = data.name;
+                //        userDto.LastName = data.surname;
+                //        userDto.FullName = data.prename + " " + data.name + " " + data.surname;
+                //        userDto.Gender = !string.IsNullOrWhiteSpace(data.sex) ? data.sex == "M" || data.sex == "m" ? 0 : 1 : null;
+                //        userDto.BirthDate = dataBirthDate;
+                //        userDto.Age = DateTimeUtility.CalculateAge(dataBirthDate);
+                //        userDto.Agency = data.depend;
+                //    }
+                //    return new ResultResponse()
+                //    {
+                //        IsSuccess = true,
+                //        Data = userDto
+                //    };
+                //}
                 return new ResultResponse()
                 {
                     IsSuccess = false,

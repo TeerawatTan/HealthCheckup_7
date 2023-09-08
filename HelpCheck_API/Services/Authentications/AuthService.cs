@@ -11,6 +11,7 @@ using RestSharp;
 using System;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace HelpCheck_API.Services.Authentications
@@ -35,112 +36,108 @@ namespace HelpCheck_API.Services.Authentications
                 {
                     if (!loginRequestDto.Username.Contains("/"))
                     {
-                        var cli = new RestClient("http://dev34.pmk.ac.th:8080/ords/dev/api/Duser/" + loginRequestDto.Username)
-                        {
-                            Timeout = -1
-                        };
-                        var req = new RestRequest(Method.GET);
-                        req.AddHeader("Content-Type", "application/json");
-                        IRestResponse response = await cli.ExecuteAsync(req);
+                        //var cli = new RestClient("http://dev34.pmk.ac.th:8080");
+                        //var result = await cli.GetJsonAsync<DUserDto>("/ords/dev/api/Duser/{uname}", new { uname = loginRequestDto.Username });
 
-                        // Log
-                        Console.WriteLine("### Response: {0}", response);
-                        Console.WriteLine("-----------------------------------");
-                        Console.WriteLine("### Before map content: {0}", response.Content);
+                        //var client = new RestClient("https://healthcheckup1.pmk.ac.th");
+                        //var request = new RestRequest("web-apps/Auth/SignIn");
+                        //string json = "{\"username\":\"keen@test.com\",\"password\":\"1234\"}";
+                        //request.AddJsonBody(json, "text/x-json");
+                        //var result = await client.PostAsync<DUserDto>(request);
 
-                        DUserDto result = JsonConvert.DeserializeObject<DUserDto>(response.Content);
+                        //if (result.Data is not null && result.Data.Count > 0)
+                        //{
+                        //    DUserDetailDto data = result.Data.FirstOrDefault();
+                        //    if (string.IsNullOrWhiteSpace(data.Role))
+                        //    {
+                        //        return new ResultResponse()
+                        //        {
+                        //            IsSuccess = false,
+                        //            Data = "Role is not null"
+                        //        };
+                        //    }
 
-                        // Log
-                        Console.WriteLine("-----------------------------------");
-                        Console.WriteLine("### After map content to model: " + result.Data);
-                        Console.WriteLine("-----------------------------------");
-                        if (result.Data is not null && result.Data.Count > 0)
-                        {
-                            DUserDetailDto data = result.Data.FirstOrDefault();
-                            if (string.IsNullOrWhiteSpace(data.Role))
-                            {
-                                return new ResultResponse()
-                                {
-                                    IsSuccess = false,
-                                    Data = "Role is not null"
-                                };
-                            }
+                        //    if (loginRequestDto.Password != data.Checkword)
+                        //    {
+                        //        return new ResultResponse()
+                        //        {
+                        //            IsSuccess = false,
+                        //            Data = Constant.STATUS_PASSWORD_NOT_MATCH
+                        //        };
+                        //    }
+                        //    else
+                        //    {
+                        //        if (!await _userRepository.CheckUserExists(loginRequestDto.Username))
+                        //        {
+                        //            AddUserDto addUser = new AddUserDto()
+                        //            {
+                        //                Username = data.User,
+                        //                Email = data.User,
+                        //                FirstName = data.Name,
+                        //                Password = data.Checkword,
+                        //                RoleID = Convert.ToInt32(data.Role)
+                        //            };
 
-                            if (loginRequestDto.Password != data.Checkword)
-                            {
-                                return new ResultResponse()
-                                {
-                                    IsSuccess = false,
-                                    Data = Constant.STATUS_PASSWORD_NOT_MATCH
-                                };
-                            }
-                            else
-                            {
-                                if (!await _userRepository.CheckUserExists(loginRequestDto.Username))
-                                {
-                                    AddUserDto addUser = new AddUserDto()
-                                    {
-                                        Username = data.User,
-                                        Email = data.User,
-                                        FirstName = data.Name,
-                                        Password = data.Checkword,
-                                        RoleID = Convert.ToInt32(data.Role)
-                                    };
-
-                                    var resultAddUser = await _userService.RegisterAsync(addUser, false);
-                                    if (!resultAddUser.IsSuccess)
-                                    {
-                                        return resultAddUser;
-                                    }
-                                }
-                            }
-                        }
+                        //            var resultAddUser = await _userService.RegisterAsync(addUser, false);
+                        //            if (!resultAddUser.IsSuccess)
+                        //            {
+                        //                return resultAddUser;
+                        //            }
+                        //        }
+                        //    }
+                        //}
                     }
 
-                    var user = await _userRepository.GetUserInfoByUserNameAsync(loginRequestDto.Username);
+                    //var user = await _userRepository.GetUserInfoByUserNameAsync(loginRequestDto.Username);
 
-                    if (user is null)
-                    {
-                        return new ResultResponse()
-                        {
-                            IsSuccess = false,
-                            Data = Constant.STATUS_DATA_NOT_FOUND
-                        };
-                    }
-
-                    //if (user.RoleID != 5)
+                    //if (user is null)
                     //{
                     //    return new ResultResponse()
                     //    {
                     //        IsSuccess = false,
-                    //        Data = Constant.DATA_STATUS_FORBIDDEN
+                    //        Data = Constant.STATUS_DATA_NOT_FOUND
                     //    };
                     //}
 
-                    if (!user.IsActive || !PasswordHasher.Check(user.Password, loginRequestDto.Password).Verified)
-                    {
-                        return new ResultResponse()
-                        {
-                            IsSuccess = false,
-                            Data = Constant.STATUS_PASSWORD_NOT_MATCH
-                        };
-                    }
+                    ////if (user.RoleID != 5)
+                    ////{
+                    ////    return new ResultResponse()
+                    ////    {
+                    ////        IsSuccess = false,
+                    ////        Data = Constant.DATA_STATUS_FORBIDDEN
+                    ////    };
+                    ////}
 
-                    string accessToken = CryptoEngine.Encrypt(Guid.NewGuid().ToString());
-                    user.Token = accessToken;
-                    user.ExpireDate = DateTime.Now.AddMinutes(Convert.ToInt32(appSettingHelper.GetConfiguration("JwtExpireMin")));
-                    var resultUpdate = await _userRepository.UpdateUserAsync(user);
-                    if (resultUpdate == null || resultUpdate != Constant.STATUS_SUCCESS)
-                    {
-                        throw new Exception(resultUpdate);
-                    }
+                    //if (!user.IsActive || !PasswordHasher.Check(user.Password, loginRequestDto.Password).Verified)
+                    //{
+                    //    return new ResultResponse()
+                    //    {
+                    //        IsSuccess = false,
+                    //        Data = Constant.STATUS_PASSWORD_NOT_MATCH
+                    //    };
+                    //}
 
-                    var res = await CreateTokenUser(user.Token, user.UserID, user.UserName, user.RoleID);
+                    //string accessToken = CryptoEngine.Encrypt(Guid.NewGuid().ToString());
+                    //user.Token = accessToken;
+                    //user.ExpireDate = DateTime.Now.AddMinutes(Convert.ToInt32(appSettingHelper.GetConfiguration("JwtExpireMin")));
+                    //var resultUpdate = await _userRepository.UpdateUserAsync(user);
+                    //if (resultUpdate == null || resultUpdate != Constant.STATUS_SUCCESS)
+                    //{
+                    //    throw new Exception(resultUpdate);
+                    //}
+
+                    //var res = await CreateTokenUser(user.Token, user.UserID, user.UserName, user.RoleID);
+
+                    //return new ResultResponse()
+                    //{
+                    //    IsSuccess = true,
+                    //    Data = res
+                    //};
 
                     return new ResultResponse()
                     {
                         IsSuccess = true,
-                        Data = res
+                        Data = new LoginResponseDto()
                     };
                 }
                 catch (Exception ex)
