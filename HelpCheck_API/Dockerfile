@@ -7,10 +7,10 @@ EXPOSE 443
 
 FROM mcr.microsoft.com/dotnet/sdk:7.0 AS build
 WORKDIR /src
-COPY ["HelpCheck_API/HelpCheck_API.csproj", "HelpCheck_API/"]
-RUN dotnet restore "HelpCheck_API/HelpCheck_API.csproj"
+COPY ["HelpCheck_API.csproj", "./"]
+RUN dotnet restore "HelpCheck_API.csproj"
 COPY . .
-WORKDIR "/src/HelpCheck_API"
+WORKDIR "/src/."
 RUN dotnet build "HelpCheck_API.csproj" -c Release -o /app/build
 
 FROM build AS publish
