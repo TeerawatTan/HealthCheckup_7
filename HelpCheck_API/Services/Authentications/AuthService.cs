@@ -88,57 +88,52 @@ namespace HelpCheck_API.Services.Authentications
                         //}
                     }
 
-                    //var user = await _userRepository.GetUserInfoByUserNameAsync(loginRequestDto.Username);
+                    var user = await _userRepository.GetUserInfoByUserNameAsync(loginRequestDto.Username);
 
-                    //if (user is null)
+                    if (user is null)
+                    {
+                        return new ResultResponse()
+                        {
+                            IsSuccess = false,
+                            Data = Constant.STATUS_DATA_NOT_FOUND
+                        };
+                    }
+
+                    //if (user.RoleID != 5)
                     //{
                     //    return new ResultResponse()
                     //    {
                     //        IsSuccess = false,
-                    //        Data = Constant.STATUS_DATA_NOT_FOUND
+                    //        Data = Constant.DATA_STATUS_FORBIDDEN
                     //    };
                     //}
 
-                    ////if (user.RoleID != 5)
-                    ////{
-                    ////    return new ResultResponse()
-                    ////    {
-                    ////        IsSuccess = false,
-                    ////        Data = Constant.DATA_STATUS_FORBIDDEN
-                    ////    };
-                    ////}
+                    if (!user.IsActive || !PasswordHasher.Check(user.Password, loginRequestDto.Password).Verified)
+                    {
+                        return new ResultResponse()
+                        {
+                            IsSuccess = false,
+                            Data = Constant.STATUS_PASSWORD_NOT_MATCH
+                        };
+                    }
 
-                    //if (!user.IsActive || !PasswordHasher.Check(user.Password, loginRequestDto.Password).Verified)
-                    //{
-                    //    return new ResultResponse()
-                    //    {
-                    //        IsSuccess = false,
-                    //        Data = Constant.STATUS_PASSWORD_NOT_MATCH
-                    //    };
-                    //}
+                    string accessToken = CryptoEngine.Encrypt(Guid.NewGuid().ToString());
+                    user.Token = accessToken;
+                    user.ExpireDate = DateTime.Now.AddMinutes(Convert.ToInt32(appSettingHelper.GetConfiguration("JwtExpireMin")));
+                    var resultUpdate = await _userRepository.UpdateUserAsync(user);
+                    if (resultUpdate == null || resultUpdate != Constant.STATUS_SUCCESS)
+                    {
+                        throw new Exception(resultUpdate);
+                    }
 
-                    //string accessToken = CryptoEngine.Encrypt(Guid.NewGuid().ToString());
-                    //user.Token = accessToken;
-                    //user.ExpireDate = DateTime.Now.AddMinutes(Convert.ToInt32(appSettingHelper.GetConfiguration("JwtExpireMin")));
-                    //var resultUpdate = await _userRepository.UpdateUserAsync(user);
-                    //if (resultUpdate == null || resultUpdate != Constant.STATUS_SUCCESS)
-                    //{
-                    //    throw new Exception(resultUpdate);
-                    //}
-
-                    //var res = await CreateTokenUser(user.Token, user.UserID, user.UserName, user.RoleID);
-
-                    //return new ResultResponse()
-                    //{
-                    //    IsSuccess = true,
-                    //    Data = res
-                    //};
+                    var res = await CreateTokenUser(user.Token, user.UserID, user.UserName, user.RoleID);
 
                     return new ResultResponse()
                     {
                         IsSuccess = true,
-                        Data = new LoginResponseDto()
+                        Data = res
                     };
+
                 }
                 catch (Exception ex)
                 {
