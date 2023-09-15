@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -7,6 +8,7 @@ namespace HelpCheck_API.Dtos.Patients
 {
     public class GetBloodResultDto
     {
+        [Key]
         public int vn { get; set; }
         public string result_date { get; set; }
         public string doctorname { get; set; }
