@@ -13,7 +13,7 @@ services:
     ports:
       - 3306:3306
     volumes:
-      - ./mysql-db:/var/lib/mysql
+      - ../../../db:/var/lib/mysql
     networks:
       - localnetwork
       
