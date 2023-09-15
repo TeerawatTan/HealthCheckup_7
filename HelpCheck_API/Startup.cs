@@ -13,6 +13,7 @@ using HelpCheck_API.Repositories.MasterOralHealths;
 using HelpCheck_API.Repositories.MasterTreatments;
 using HelpCheck_API.Repositories.MasterWorkPlaces;
 using HelpCheck_API.Repositories.Modules;
+using HelpCheck_API.Repositories.OtherInterfaces;
 using HelpCheck_API.Repositories.Patients;
 using HelpCheck_API.Repositories.PhysicalExaminationMasters;
 using HelpCheck_API.Repositories.PsychiatristChecks;
@@ -179,6 +180,7 @@ namespace HelpCheck_API
             services.AddScoped<IMasterOralHealthRepository, MasterOralHealthRepository>();
             services.AddScoped<IPsychiatristCheckRepository, PsychiatristCheckRepository>();
             services.AddScoped<IMasterTreatmentRepository, MasterTreatmentRepository>();
+            services.AddScoped<IOtherInterfaceRepository, OtherInterfaceRepository>();
 
             #endregion
 
