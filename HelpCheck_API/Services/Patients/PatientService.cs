@@ -5,6 +5,7 @@ using HelpCheck_API.Dtos.Physicals;
 using HelpCheck_API.Models;
 using HelpCheck_API.Repositories.Appointments;
 using HelpCheck_API.Repositories.AppointmentSettings;
+using HelpCheck_API.Repositories.OtherInterfaces;
 using HelpCheck_API.Repositories.Patients;
 using HelpCheck_API.Repositories.PhysicalExaminationMasters;
 using HelpCheck_API.Repositories.Users;
@@ -23,18 +24,22 @@ namespace HelpCheck_API.Services.Patients
         private readonly IAppointmentRepository _appointmentRepository;
         private readonly IAppointmentSettingRepository _appointmentSettingRepository;
         private readonly IPhysicalRepository _physicalRepository;
+        private readonly IOtherInterfaceRepository _otherInterfaceRepository;
+
         public PatientService(
             IUserRepository userRepository,
             IPatientRepository patientRepository,
             IAppointmentRepository appointmentRepository,
             IAppointmentSettingRepository appointmentSettingRepository,
-            IPhysicalRepository physicalRepository)
+            IPhysicalRepository physicalRepository,
+            IOtherInterfaceRepository otherInterfaceRepository)
         {
             _userRepository = userRepository;
             _patientRepository = patientRepository;
             _appointmentRepository = appointmentRepository;
             _appointmentSettingRepository = appointmentSettingRepository;
             _physicalRepository = physicalRepository;
+            _otherInterfaceRepository = otherInterfaceRepository;
         }
 
         public async Task<ResultResponse> CreatePhysicalPatientAsync(AddPhysicalDto addPhysicalDto)
@@ -230,7 +235,7 @@ namespace HelpCheck_API.Services.Patients
                 return new ResultResponse()
                 {
                     IsSuccess = true,
-                    Data = new DataXRayResult()
+                    Data = _otherInterfaceRepository.GetXRayResults()
                 };
             }
             catch (Exception ex)
