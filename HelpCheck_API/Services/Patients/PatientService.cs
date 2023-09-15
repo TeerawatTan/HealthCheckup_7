@@ -279,7 +279,7 @@ namespace HelpCheck_API.Services.Patients
                 return new ResultResponse()
                 {
                     IsSuccess = true,
-                    Data = new DataBloodResult()
+                    Data = _otherInterfaceRepository.GetBloodResults()
                 };
             }
             catch (Exception ex)
@@ -323,7 +323,7 @@ namespace HelpCheck_API.Services.Patients
                 return new ResultResponse()
                 {
                     IsSuccess = true,
-                    Data = new GetLabSmearDto()
+                    Data = _otherInterfaceRepository.GetLabSmearDetails()
                 };
             }
             catch (Exception ex)
