@@ -34,8 +34,8 @@ namespace HelpCheck_API.Services.Authentications
             {
                 try
                 {
-                    if (!loginRequestDto.Username.Contains("/"))
-                    {
+                    // if (!loginRequestDto.Username.Contains("/"))
+                    // {
                         //var cli = new RestClient("http://dev34.pmk.ac.th:8080");
                         //var result = await cli.GetJsonAsync<DUserDto>("/ords/dev/api/Duser/{uname}", new { uname = loginRequestDto.Username });
 
@@ -86,7 +86,7 @@ namespace HelpCheck_API.Services.Authentications
                         //        }
                         //    }
                         //}
-                    }
+                    // }
 
                     var user = await _userRepository.GetUserInfoByUserNameAsync(loginRequestDto.Username);
 
