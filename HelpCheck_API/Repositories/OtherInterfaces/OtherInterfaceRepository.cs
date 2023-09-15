@@ -1,4 +1,5 @@
 using HelpCheck_API.Data;
+using System.Linq;
 
 namespace HelpCheck_API.Repositories.OtherInterfaces
 {
@@ -10,5 +11,6 @@ namespace HelpCheck_API.Repositories.OtherInterfaces
         {
             _context = context;
         }
+
     }
 }

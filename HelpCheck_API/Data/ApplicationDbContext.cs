@@ -1,3 +1,5 @@
+using HelpCheck_API.Dtos.Patients;
+using HelpCheck_API.Dtos.Reports;
 using HelpCheck_API.Models;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
@@ -43,6 +45,10 @@ namespace HelpCheck_API.Data
             builder.Entity<PsychiatristCheck>().ToTable("psychiatrist_check");
             builder.Entity<MasterTreatment>().ToTable("master_treatment");
             builder.Entity<ViewReportPsychiatristCheck>().ToView("v_answer_psychiatrist_check");
+            builder.Entity<CheckResultDetailFromPMKDto>().ToView("check_result");
+            builder.Entity<GetXRayResultDto>().ToView("xray_result");
+            builder.Entity<GetBloodResultDto>().ToView("blood_result");
+            builder.Entity<GetLabSmearDetailDto>().ToView("labsmear_detail");
         }
 
         public DbSet<User> UserEntities { get; set; }
@@ -71,5 +77,9 @@ namespace HelpCheck_API.Data
         public DbSet<PsychiatristCheck> PsychiatristChecks { get; set; }
         public DbSet<MasterTreatment> MasterTreatments { get; set; }
         public DbSet<ViewReportPsychiatristCheck> ViewReportPsychiatristChecks { get; set; }
+        public DbSet<CheckResultDetailFromPMKDto> DetailResultFromHospitals { get; set; }
+        public DbSet<GetXRayResultDto> XRayResults { get; set; }
+        public DbSet<GetBloodResultDto> BloodResults { get; set; }
+        public DbSet<GetLabSmearDetailDto> LabSmearDetails { get; set; }
     }
 }
