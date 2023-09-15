@@ -3,6 +3,8 @@ using HelpCheck_API.Dtos.Patients;
 using HelpCheck_API.Dtos.Reports;
 using HelpCheck_API.Repositories.DentistChecks;
 using HelpCheck_API.Repositories.DoctorChecks;
+using HelpCheck_API.Repositories.OtherInterfaceHospitals;
+using HelpCheck_API.Repositories.OtherInterfaces;
 using HelpCheck_API.Repositories.Patients;
 using HelpCheck_API.Repositories.PhysicalExaminationMasters;
 using HelpCheck_API.Repositories.QuestionAndChoices;
@@ -27,8 +29,9 @@ namespace HelpCheck_API.Services.Reports
         private readonly IDentistCheckRepository _dentistCheckRepository;
         private readonly IDoctorCheckRepository _doctorCheckRepository;
         private readonly IMemoryCache _memoryCache;
+        private readonly IOtherInterfaceHospital _otherInterfaceHospital;
 
-        public ReportService(IPatientRepository patientRepository, IPhysicalRepository physicalRepository, IPatientService patientService, IQuestionAndChoiceRepository questionAndChoiceRepository, IDentistCheckRepository dentistCheckRepository, IDoctorCheckRepository doctorCheckRepository, IMemoryCache memoryCache)
+        public ReportService(IPatientRepository patientRepository, IPhysicalRepository physicalRepository, IPatientService patientService, IQuestionAndChoiceRepository questionAndChoiceRepository, IDentistCheckRepository dentistCheckRepository, IDoctorCheckRepository doctorCheckRepository, IMemoryCache memoryCache,IOtherInterfaceHospital otherInterfaceHospital)
         {
             _patientRepository = patientRepository;
             _physicalRepository = physicalRepository;
@@ -37,6 +40,7 @@ namespace HelpCheck_API.Services.Reports
             _dentistCheckRepository = dentistCheckRepository;
             _doctorCheckRepository = doctorCheckRepository;
             _memoryCache = memoryCache;
+            _otherInterfaceHospital = otherInterfaceHospital;
         }
 
         private async Task<CheckResultDetailFromPMKDto> GetCheckResultAsync(string idcard)
@@ -55,8 +59,13 @@ namespace HelpCheck_API.Services.Reports
                 //{
                 //    return data.Data.LastOrDefault();
                 //}
-                return null;
+                
+
+                return _otherInterfaceHospital.GetDetailResultFromHospitals(idcard).FirstOrDefault();
+
             }
+            
+             
             catch (System.Exception ex)
             {
                 throw new Exception("Error from api pmk : " + ex.Message);

@@ -12,9 +12,9 @@ namespace HelpCheck_API.Repositories.OtherInterfaceHospitals
         {
             _context = context;
         }
-        public List<CheckResultDetailFromPMKDto> GetDetailResultFromHospitals()
+        public List<CheckResultDetailFromPMKDto> GetDetailResultFromHospitals(string idcard)
         {
-            return _context.DetailResultFromHospitals.ToList();
+            return _context.DetailResultFromHospitals.Where(w => w.id_card == idcard).ToList();
         }
     }
 }

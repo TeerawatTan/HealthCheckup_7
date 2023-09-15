@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using HelpCheck_API.Constants;
 
 namespace HelpCheck_API.Dtos.Reports
@@ -91,12 +92,15 @@ namespace HelpCheck_API.Dtos.Reports
         }
     }
 
-    public class CheckResultDetailFromPMKDto
+    public class CheckResultDetailFromPMKDto 
     {
+        
         public string prename { get; set; }
         public string name { get; set; }
         public string surname { get; set; }
         public string hn { get; set; }
+
+        [Key]
         public string id_card { get; set; }
         public string patient_age { get; set; }
         public string sex { get; set; }
@@ -122,6 +126,8 @@ namespace HelpCheck_API.Dtos.Reports
         public string CHOL_CHECK { get; set; }
         public string FPG_CHECK { get; set; }
         public string PAP_SMEAR { get; set; }
+
+
     }
 
     public class CheckResultFromPMKDto
