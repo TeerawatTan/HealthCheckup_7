@@ -183,6 +183,8 @@ namespace HelpCheck_API
             services.AddScoped<IMasterTreatmentRepository, MasterTreatmentRepository>();
             services.AddScoped<IOtherInterfaceRepository, OtherInterfaceRepository>();
             services.AddScoped<IOtherInterfaceHospital, OtherInterfaceHospital>();
+
+
             #endregion
 
             services.AddAuthentication(options =>
