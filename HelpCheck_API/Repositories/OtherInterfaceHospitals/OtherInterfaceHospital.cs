@@ -19,7 +19,7 @@ namespace HelpCheck_API.Repositories.OtherInterfaceHospitals
 
         public List<CheckResultToDayDetailFromPMKDto> GetResultToDayDetailFromPMKs(string idcard)
         {
-            return  _context.DetailResultFromHospitals.Where(w => w.id_card == idcard).ToList();
+            return  _context.ResultToDayDetails.Where(w => w.ID == idcard).ToList();
         }
     }
 

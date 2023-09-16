@@ -49,6 +49,7 @@ namespace HelpCheck_API.Data
             builder.Entity<GetXRayResultDto>().ToView("xray_result");
             builder.Entity<GetBloodResultDto>().ToView("blood_result");
             builder.Entity<GetLabSmearDetailDto>().ToView("labsmear_detail");
+            builder.Entity<CheckResultToDayDetailFromPMKDto>().ToView("result_today");
         }
 
         public DbSet<User> UserEntities { get; set; }
@@ -81,5 +82,6 @@ namespace HelpCheck_API.Data
         public DbSet<GetXRayResultDto> XRayResults { get; set; }
         public DbSet<GetBloodResultDto> BloodResults { get; set; }
         public DbSet<GetLabSmearDetailDto> LabSmearDetails { get; set; }
+        public DbSet<CheckResultToDayDetailFromPMKDto> ResultToDayDetails { get; set;}
     }
 }
