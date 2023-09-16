@@ -6,6 +6,7 @@ namespace HelpCheck_API.Repositories.OtherInterfaceHospitals
     public interface IOtherInterfaceHospital
     {
         List<CheckResultDetailFromPMKDto> GetDetailResultFromHospitals(string idcard);
+        List<CheckResultToDayDetailFromPMKDto> GetResultToDayDetailFromPMKs (string idcard);
     }
 
 }

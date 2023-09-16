@@ -16,5 +16,11 @@ namespace HelpCheck_API.Repositories.OtherInterfaceHospitals
         {
             return _context.DetailResultFromHospitals.Where(w => w.id_card == idcard).ToList();
         }
+
+        public List<CheckResultToDayDetailFromPMKDto> GetResultToDayDetailFromPMKs(string idcard)
+        {
+            return  _context.DetailResultFromHospitals.Where(w => w.id_card == idcard).ToList();
+        }
     }
+
 }

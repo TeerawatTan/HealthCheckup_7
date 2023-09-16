@@ -88,7 +88,7 @@ namespace HelpCheck_API.Services.Reports
                 //{
                 //    return data.Data.LastOrDefault();
                 //}
-                return null;
+                return _otherInterfaceHospital.GetResultToDayDetailFromPMKs(idcard).FirstOrDefault();
             }
             catch (System.Exception ex)
             {
