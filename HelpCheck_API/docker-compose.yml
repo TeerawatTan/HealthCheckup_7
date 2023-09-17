@@ -10,11 +10,5 @@ services:
       dockerfile: ./Dockerfile
     ports:
       - 4000:4000
-    networks:
-      - localnetwork
-
-networks:
-  localnetwork:
-    driver: bridge
 
   
