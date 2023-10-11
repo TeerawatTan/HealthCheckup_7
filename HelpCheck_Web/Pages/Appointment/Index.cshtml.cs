@@ -526,7 +526,7 @@ namespace HelpCheck_Web.Pages.Appointment
             string tokenStr = HttpContext.Session.GetString("token");
             try
             {
-                var cli = new RestClient(_configuration["api"] + "/web-apps/Reports/AllPatient?pageNumber="+ date + "&pageSize=40")
+                var cli = new RestClient(_configuration["api"] + "/web-apps/Reports/AllPatient?pageNumber="+ date + "&pageSize=10")
                 {
                     Timeout = -1
                 };

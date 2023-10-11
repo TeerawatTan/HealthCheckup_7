@@ -55,7 +55,7 @@
             </div>
             <div class="patient-detail-wrapper col-md-8 col-sm-3">
                 <div class="patient-detail">
-                    <div class="title-doctor-detail bg-green">
+                    <div class="title-doctor-detail" style="background-color:#0C3861;color:#ffff">
                         <span>ประวัติการเจ็บป่วย / โรคประจำตัว</span>
                     </div>
                     <div class="row" id="docpatient-profile">
@@ -125,7 +125,7 @@
             </div>
             <div class="position-relative form-group text-left mt-5">
                 <textarea name="text" id="bodyText" class="form-control col-md-6" placeholder="บันทึกรายละเอียด"
-                          rows="15" style="background-color:#E5FAF1;font-size:20px"></textarea>
+                          rows="15" style="background-color:#D2EAFF;font-size:20px"></textarea>
             </div>
             <div>
                 <button type="button" id="btnSaveDoctorId" onclick="onSave('doctor')" style="color:white">บันทึก</button>
@@ -169,7 +169,7 @@
             <div class="position-relative form-group text-left mt-5 row">
 
                 <textarea name="text" id="mouthText" class="form-control col-md-5" placeholder="บันทึกรายละเอียด"
-                          rows="15" style="background-color: #E5FAF1; font-size: 20px"></textarea>
+                          rows="15" style="background-color: #D2EAFF; font-size: 20px"></textarea>
                 <div class="col-md-7 form-group text-left m-6 ">
                     <div class="form-check ">
                         @*<input class="form-check-input" type="radio" id="mouthA" value="1" style="height:15px;width:15px;" />*@
@@ -282,7 +282,7 @@
         <div class="step-wrapper">
             <div class="position-relative form-group text-left mt-5">
                 <textarea name="text" id="phychText" class="form-control col-md-6" placeholder="บันทึกรายละเอียด"
-                          rows="15" style="background-color:#E5FAF1;font-size:20px"></textarea>
+                          rows="15" style="background-color:#D2EAFF;font-size:20px"></textarea>
             </div>
             <div>
                 <button type="button" id="btnSaveDoctorId" onclick="onSave('phych')" style="color:white">บันทึก</button>
@@ -575,7 +575,7 @@
                         </div>
                         <div>
                             <textarea name="text" id="insideText" class="form-control" placeholder="บันทึกรายละเอียด"
-                                      rows="15" style="background-color: #E5FAF1; font-size: 20px;height: 100px"></textarea>
+                                      rows="15" style="background-color: #D2EAFF; font-size: 20px;height: 100px"></textarea>
                         </div>
                         <h5 class="col-md-12 col-sm-12 card-title highlight-group-item-success text-left">
                             ผลการตรวจมะเร็งปากมดลูก
@@ -1068,7 +1068,7 @@
     function makeRequest(method, reqestUrl, data) {
         return $.ajax({
             type: method,
-            url: 'http://192.168.164.99:4000'  + reqestUrl,
+            url: 'https://api-healthcheck.nest-im-solution.com'  + reqestUrl,
             contentType: "application/json",
             dataType: "json",
             data: data ? JSON.stringify(data) : null

@@ -430,24 +430,21 @@ namespace HelpCheck_Web.Pages.Doctor
         }
         public JsonResult OnGetXrayDetail(string id)
         {
+            OnGetRefleshToken();
+            string tokenStr = HttpContext.Session.GetString("token");
+
             try
             {
-                var cli = new RestClient("http://202.28.80.34:8080/ords/dev/patient/xrayresult/" + id)
+                var cli = new RestClient(_configuration["api"] + "/web-apps/Patient/GetXRayResult/" + id)
                 {
                     Timeout = -1
                 };
                 var req = new RestRequest(Method.GET);
                 req.AddHeader("Content-Type", "application/json");
+                req.AddHeader("Authorization", "Bearer " + tokenStr);
                 IRestResponse response = cli.Execute(req);
-                if (response != null)
-                {
-                    var data = JsonConvert.DeserializeObject<List<object>>(response.Content);
-                    return new JsonResult(data);
-                }
-                else
-                {
-                    return new JsonResult(null);
-                }
+                var data = JsonConvert.DeserializeObject<RootX>(response.Content);
+                return new JsonResult(data);
             }
             catch (Exception)
             {

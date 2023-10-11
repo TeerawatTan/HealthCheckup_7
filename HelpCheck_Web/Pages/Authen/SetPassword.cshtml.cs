@@ -75,34 +75,34 @@ namespace HelpCheck_Web.Pages.Authen
             }
             return Page();
         }
-        public JsonResult OnPostCheckIDCard([FromBody] GetID data)
-        {
+        //public JsonResult OnPostCheckIDCard([FromBody] GetID data)
+        //{
 
-            try
-            {
-                var cli = new RestClient("http://202.28.80.34:8080/ords/dev/patient/check/" + data.id)
-                {
-                    Timeout = -1
-                };
-                var req = new RestRequest(Method.GET);
-                req.AddHeader("Content-Type", "application/json");
-                IRestResponse response = cli.Execute(req);
-                var dataz = JsonConvert.DeserializeObject<UserHostp>(response.Content);
-                if (response != null && response.StatusCode == System.Net.HttpStatusCode.OK)
-                {
-                    if (dataz.id_card ==data.id && dataz.hn == data.hn)
-                    {
-                        return new JsonResult("success");
-                    }
-                    return new JsonResult("error");
-                }
-                return new JsonResult("error");
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.Message);
-                return new JsonResult("error");
-            }
-        }
+        //    try
+        //    {
+        //        var cli = new RestClient("http://202.28.80.34:8080/ords/dev/patient/check/" + data.id)
+        //        {
+        //            Timeout = -1
+        //        };
+        //        var req = new RestRequest(Method.GET);
+        //        req.AddHeader("Content-Type", "application/json");
+        //        IRestResponse response = cli.Execute(req);
+        //        var dataz = JsonConvert.DeserializeObject<UserHostp>(response.Content);
+        //        if (response != null && response.StatusCode == System.Net.HttpStatusCode.OK)
+        //        {
+        //            if (dataz.id_card ==data.id && dataz.hn == data.hn)
+        //            {
+        //                return new JsonResult("success");
+        //            }
+        //            return new JsonResult("error");
+        //        }
+        //        return new JsonResult("error");
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        Console.WriteLine(ex.Message);
+        //        return new JsonResult("error");
+        //    }
+        //}
     }
 }

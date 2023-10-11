@@ -27,13 +27,13 @@
 
 </style>
 <div style="float:right;flex-wrap:nowrap;align-items:center" class="row">
-    <button type="button" class="btn btn-default button3 button" style="background-color: #04AA6D" onclick="reportShow()">Report Menu</button>
+    <button type="button" class="btn btn-default button3 button" style="background-color: #0C3861;color:#fff" onclick="reportShow()">Report Menu</button>
 </div>
 
 <div class="row container m-bt-20">
     <!-- Trigger the modal with a button -->
     <div style="padding-right: 150px;">
-        <button type="button" class="btn btn-default button3 button" style="background-color: #04AA6D" id="myBtn">สร้าง</button>
+        <button type="button" class="btn btn-default button3 button" style="background-color: #0C3861;color:#fff" id="myBtn">สร้าง</button>
     </div>
 
     <!-- Modal -->
@@ -150,34 +150,34 @@
                         <p style="width: auto;font-size: 16px;margin: 10px;">1.รายงานคำตอบ ปี ค.ศ.ที่ต้องการ Downlond คำตอบ</p>
                         <select type="text" id="yearSelector" class="form-control" style="width:100px">
                         </select>
-                        <button type="button" class="btn btn-default button3 button" style="background-color: #04AA6D" id="DownloadAnwser" onclick="Download1()">Anwser</button>
+                        <button type="button" class="btn btn-default button3 button" style="background-color: #0C3861;color:#fff" id="DownloadAnwser" onclick="Download1()">Anwser</button>
                     </div>
                     <br />
                     <div style="flex-wrap:nowrap;align-items:center" class="row">
                         <p style="width: auto;font-size: 16px;margin: 10px;">2.รายงานการจองรายวัน วันที่ที่ต้องการ Downlond Report</p>
                         <input type="date" id="Date" class="form-control" style="width:150px" />
-                        <button type="button" class="btn btn-default button3 button" style="background-color: #04AA6D" id="DownloadReportApp" onclick="Download2()">Report App</button>
+                        <button type="button" class="btn btn-default button3 button" style="background-color: #0C3861;color:#fff" id="DownloadReportApp" onclick="Download2()">Report App</button>
                     </div>
                     <br />
                     <div style="flex-wrap:nowrap;align-items:center" class="row">
                         <p style="width: auto;font-size: 16px;margin: 10px;">3.รายงานประจำวัน วันที่ที่ต้องการ Downlond Report</p>
                         <input type="date" id="Datereport" class="form-control" style="width:150px" />
-                        <button type="button" class="btn btn-default button3 button" style="background-color: #04AA6D" id="DownloadReportApp" onclick="DownloadDailyReport()">Report Daily</button>
+                        <button type="button" class="btn btn-default button3 button" style="background-color: #0C3861;color:#fff" id="DownloadReportApp" onclick="DownloadDailyReport()">Report Daily</button>
                     </div>
                     <br />
                     <div style="flex-wrap:nowrap;align-items:center" class="row">
                         <p style="width: auto;font-size: 16px;margin: 10px;">4.รายงานจิตแพทย์ วันที่ที่ต้องการ Downlond Report</p>
                         <input type="date" id="DatePsych" class="form-control" style="width:150px" />
-                        <button type="button" class="btn btn-default button3 button" style="background-color: #04AA6D" id="DownloadReportApp" onclick="DownloadPsych()">Report Psych</button>
+                        <button type="button" class="btn btn-default button3 button" style="background-color: #0C3861;color:#fff" id="DownloadReportApp" onclick="DownloadPsych()">Report Psych</button>
                     </div>
                     <br />
                     <div style="flex-wrap:nowrap;align-items:center" class="row">
                         <p style="width: auto;font-size: 16px;margin: 10px;">5.รายงานประจำปี ทันตแพทย์ </p>
-                        <button type="button" class="btn btn-default button3 button" style="background-color: #04AA6D" id="DownloadReportApp" onclick="DownloadDentist()">Report Dent</button>
+                        <button type="button" class="btn btn-default button3 button" style="background-color: #0C3861;color:#fff" id="DownloadReportApp" onclick="DownloadDentist()">Report Dent</button>
                     </div>
                     <div style="flex-wrap:nowrap;align-items:center" class="row">
                         <p style="width: auto;font-size: 16px;margin: 10px;">6.รายงานประจำปี</p>
-                        <button type="button" class="btn btn-default button3 button" style="background-color: #04AA6D" id="DownloadReportApp" onclick="DownloadAll()">Report All</button>
+                        <button type="button" class="btn btn-default button3 button" style="background-color: #0C3861;color:#fff" id="DownloadReportApp" onclick="DownloadAll()">Report All</button>
                     </div>
                     <br />
                 </form>
@@ -241,7 +241,7 @@
     function makeRequest(method, reqestUrl, data) {
         return $.ajax({
             type: method,
-            url: 'https://healthcheckup1.pmk.ac.th' + reqestUrl,
+            url: 'https://api-healthcheck.nest-im-solution.com' + reqestUrl,
             contentType: "application/json",
             dataType: "json",
             data: data ? JSON.stringify(data) : null
