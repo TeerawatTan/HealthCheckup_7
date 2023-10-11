@@ -545,14 +545,37 @@ namespace HelpCheck_API.Services.Users
 
             try
             {
-                //if (await _userRepository.CheckUserExists(idCard))
-                //{
-                //    return new ResultResponse()
-                //    {
-                //        IsSuccess = false,
-                //        Data = Constant.STATUS_USER_ALREADY_EXISTS
-                //    };
-                //}
+                if (await _userRepository.CheckUserExists(idCard))
+                {
+                    return new ResultResponse()
+                    {
+                        IsSuccess = false,
+                        Data = Constant.STATUS_USER_ALREADY_EXISTS
+                    };
+                }
+
+                FilterUserDto filterUserDto = new FilterUserDto { search = idCard };
+                var users = await _userRepository.GetUsersAsync(filterUserDto);
+
+                var userDto = users.Select(s => new GetUserDto
+                {
+                    IDCard = s.IDCard,
+                    Hn = s.Hn,
+                    TitleName = s.TitleName,
+                    FirstName = s.FirstName,
+                    LastName = s.LastName,
+                    FullName = s.TitleName + " " + s.FirstName + " " + s.LastName,
+                    Gender = s.Gender,
+                    BirthDate = s.BirthDate,
+                    Age = DateTimeUtility.CalculateAge(s.BirthDate),
+                    Agency = s.Agency
+                }).FirstOrDefault();
+
+                return new ResultResponse()
+                {
+                    IsSuccess = true,
+                    Data = userDto
+                };
 
                 //var cli = new RestClient("http://202.28.80.34:8080/ords/dev/patient/check/" + idCard.Trim().Replace("-", ""))
                 //{
@@ -585,11 +608,11 @@ namespace HelpCheck_API.Services.Users
                 //        Data = userDto
                 //    };
                 //}
-                return new ResultResponse()
-                {
-                    IsSuccess = false,
-                    Data = null
-                };
+                //return new ResultResponse()
+                //{
+                //    IsSuccess = false,
+                //    Data = null
+                //};
             }
             catch (Exception ex)
             {
