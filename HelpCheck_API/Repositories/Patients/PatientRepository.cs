@@ -280,28 +280,99 @@ namespace HelpCheck_API.Repositories.Patients
             return response;
         }
 
-        public async Task<List<GetReportDailyPsychiatristCheckDto>> GetPatientWithAnswerDetailAsync(int memberId)
+        public async Task<GetReportDailyPsychiatristCheckDto> GetPatientWithAnswerDetailAsync(int memberId)
         {
-            int[] q = { 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51 };
+            string[] questionGroup = { "8Q", "9Q", "GHQ-28" };
 
-            return await (from a in _context.AmedAnswerDetails
-                          join c in _context.AmedChoiceMasters on a.ChoiceID equals c.ChoiceID
-                          where a.MemberID == memberId && q.Contains(a.QuestionID) && a.CreatedDate.Year == DateTime.Now.Year
-                          select new GetReportDailyPsychiatristCheckDto
-                          {
-                              Question2QOne = a.QuestionID == 41 && a.ChoiceID == 35,
-                              Question2QTwo = a.QuestionID == 42 && a.ChoiceID == 35,
-                              Question9QOne = a.QuestionID == 43 && c.Score.HasValue ? c.Score.Value : 0,
-                              Question9QTwo = a.QuestionID == 44 && c.Score.HasValue ? c.Score.Value : 0,
-                              Question9QThree = a.QuestionID == 45 && c.Score.HasValue ? c.Score.Value : 0,
-                              Question9QFour = a.QuestionID == 46 && c.Score.HasValue ? c.Score.Value : 0,
-                              Question9QFive = a.QuestionID == 47 && c.Score.HasValue ? c.Score.Value : 0,
-                              Question9QSix = a.QuestionID == 48 && c.Score.HasValue ? c.Score.Value : 0,
-                              Question9QSeven = a.QuestionID == 49 && c.Score.HasValue ? c.Score.Value : 0,
-                              Question9QEight = a.QuestionID == 50 && c.Score.HasValue ? c.Score.Value : 0,
-                              Question9QNine = a.QuestionID == 51 && c.Score.HasValue ? c.Score.Value : 0
-                          }).AsQueryable().Distinct().ToListAsync();
+            var data = await (from a in _context.AmedAnswerDetails
+                              join q in _context.AmedQuestionMasters on a.QuestionID equals q.QuestionID
+                              join c in _context.AmedChoiceMasters on a.ChoiceID equals c.ChoiceID
+                              where a.MemberID == memberId && questionGroup.Contains(q.QuestionGroup) && a.CreatedDate.Year == DateTime.Now.Year
+                              select new { a.QuestionNum, q.QuestionGroup, c.Score, c.ChoiceName }
+                              ).Distinct().ToListAsync();
 
+            GetReportDailyPsychiatristCheckDto result = new GetReportDailyPsychiatristCheckDto
+            {
+                Question9Q_1 = data.Where(w => w.QuestionGroup == "9Q" && w.QuestionNum == "41").Select(s => s.Score ?? 0).FirstOrDefault(),
+                Question9Q_2 = data.Where(w => w.QuestionGroup == "9Q" && w.QuestionNum == "42").Select(s => s.Score ?? 0).FirstOrDefault(),
+                Question9Q_3 = data.Where(w => w.QuestionGroup == "9Q" && w.QuestionNum == "43").Select(s => s.Score ?? 0).FirstOrDefault(),
+                Question9Q_4 = data.Where(w => w.QuestionGroup == "9Q" && w.QuestionNum == "44").Select(s => s.Score ?? 0).FirstOrDefault(),
+                Question9Q_5 = data.Where(w => w.QuestionGroup == "9Q" && w.QuestionNum == "45").Select(s => s.Score ?? 0).FirstOrDefault(),
+                Question9Q_6 = data.Where(w => w.QuestionGroup == "9Q" && w.QuestionNum == "46").Select(s => s.Score ?? 0).FirstOrDefault(),
+                Question9Q_7 = data.Where(w => w.QuestionGroup == "9Q" && w.QuestionNum == "47").Select(s => s.Score ?? 0).FirstOrDefault(),
+                Question9Q_8 = data.Where(w => w.QuestionGroup == "9Q" && w.QuestionNum == "48").Select(s => s.Score ?? 0).FirstOrDefault(),
+                Question9Q_9 = data.Where(w => w.QuestionGroup == "9Q" && w.QuestionNum == "49").Select(s => s.Score ?? 0).FirstOrDefault(),
+
+                Question8Q_1 = data.Where(w => w.QuestionGroup == "8Q" && w.QuestionNum == "55").Select(s => s.Score ?? 0).FirstOrDefault(),
+                Question8Q_2 = data.Where(w => w.QuestionGroup == "8Q" && w.QuestionNum == "56").Select(s => s.Score ?? 0).FirstOrDefault(),
+                Question8Q_3 = data.Where(w => w.QuestionGroup == "8Q" && w.QuestionNum == "57").Select(s => s.Score ?? 0).FirstOrDefault(),
+                Question8Q_4 = data.Where(w => w.QuestionGroup == "8Q" && w.QuestionNum == "58").Select(s => s.Score ?? 0).FirstOrDefault(),
+                Question8Q_5 = data.Where(w => w.QuestionGroup == "8Q" && w.QuestionNum == "59").Select(s => s.Score ?? 0).FirstOrDefault(),
+                Question8Q_6 = data.Where(w => w.QuestionGroup == "8Q" && w.QuestionNum == "60").Select(s => s.Score ?? 0).FirstOrDefault(),
+                Question8Q_7 = data.Where(w => w.QuestionGroup == "8Q" && w.QuestionNum == "61").Select(s => s.Score ?? 0).FirstOrDefault(),
+                Question8Q_8 = data.Where(w => w.QuestionGroup == "8Q" && w.QuestionNum == "62").Select(s => s.Score ?? 0).FirstOrDefault(),
+                Question8Q_9 = data.Where(w => w.QuestionGroup == "8Q" && w.QuestionNum == "63").Select(s => s.Score ?? 0).FirstOrDefault(),
+
+                QuestionGHQ28_1 = data.Where(w => w.QuestionGroup == "GHQ-28" && w.QuestionNum == "64").Select(s => s.Score ?? 0).FirstOrDefault(),
+                QuestionGHQ28_2 = data.Where(w => w.QuestionGroup == "GHQ-28" && w.QuestionNum == "65").Select(s => s.Score ?? 0).FirstOrDefault(),
+                QuestionGHQ28_3 = data.Where(w => w.QuestionGroup == "GHQ-28" && w.QuestionNum == "66").Select(s => s.Score ?? 0).FirstOrDefault(),
+                QuestionGHQ28_4 = data.Where(w => w.QuestionGroup == "GHQ-28" && w.QuestionNum == "67").Select(s => s.Score ?? 0).FirstOrDefault(),
+                QuestionGHQ28_5 = data.Where(w => w.QuestionGroup == "GHQ-28" && w.QuestionNum == "68").Select(s => s.Score ?? 0).FirstOrDefault(),
+                QuestionGHQ28_6 = data.Where(w => w.QuestionGroup == "GHQ-28" && w.QuestionNum == "69").Select(s => s.Score ?? 0).FirstOrDefault(),
+                QuestionGHQ28_7 = data.Where(w => w.QuestionGroup == "GHQ-28" && w.QuestionNum == "70").Select(s => s.Score ?? 0).FirstOrDefault(),
+                QuestionGHQ28_8 = data.Where(w => w.QuestionGroup == "GHQ-28" && w.QuestionNum == "71").Select(s => s.Score ?? 0).FirstOrDefault(),
+                QuestionGHQ28_9 = data.Where(w => w.QuestionGroup == "GHQ-28" && w.QuestionNum == "72").Select(s => s.Score ?? 0).FirstOrDefault(),
+                QuestionGHQ28_10 = data.Where(w => w.QuestionGroup == "GHQ-28" && w.QuestionNum == "73").Select(s => s.Score ?? 0).FirstOrDefault(),
+                QuestionGHQ28_11 = data.Where(w => w.QuestionGroup == "GHQ-28" && w.QuestionNum == "74").Select(s => s.Score ?? 0).FirstOrDefault(),
+                QuestionGHQ28_12 = data.Where(w => w.QuestionGroup == "GHQ-28" && w.QuestionNum == "75").Select(s => s.Score ?? 0).FirstOrDefault(),
+                QuestionGHQ28_13 = data.Where(w => w.QuestionGroup == "GHQ-28" && w.QuestionNum == "76").Select(s => s.Score ?? 0).FirstOrDefault(),
+                QuestionGHQ28_14 = data.Where(w => w.QuestionGroup == "GHQ-28" && w.QuestionNum == "77").Select(s => s.Score ?? 0).FirstOrDefault(),
+                QuestionGHQ28_15 = data.Where(w => w.QuestionGroup == "GHQ-28" && w.QuestionNum == "78").Select(s => s.Score ?? 0).FirstOrDefault(),
+                QuestionGHQ28_16 = data.Where(w => w.QuestionGroup == "GHQ-28" && w.QuestionNum == "79").Select(s => s.Score ?? 0).FirstOrDefault(),
+                QuestionGHQ28_17 = data.Where(w => w.QuestionGroup == "GHQ-28" && w.QuestionNum == "80").Select(s => s.Score ?? 0).FirstOrDefault(),
+                QuestionGHQ28_18 = data.Where(w => w.QuestionGroup == "GHQ-28" && w.QuestionNum == "81").Select(s => s.Score ?? 0).FirstOrDefault(),
+                QuestionGHQ28_19 = data.Where(w => w.QuestionGroup == "GHQ-28" && w.QuestionNum == "82").Select(s => s.Score ?? 0).FirstOrDefault(),
+                QuestionGHQ28_20 = data.Where(w => w.QuestionGroup == "GHQ-28" && w.QuestionNum == "83").Select(s => s.Score ?? 0).FirstOrDefault(),
+                QuestionGHQ28_21 = data.Where(w => w.QuestionGroup == "GHQ-28" && w.QuestionNum == "84").Select(s => s.Score ?? 0).FirstOrDefault(),
+                QuestionGHQ28_22 = data.Where(w => w.QuestionGroup == "GHQ-28" && w.QuestionNum == "85").Select(s => s.Score ?? 0).FirstOrDefault(),
+                QuestionGHQ28_23 = data.Where(w => w.QuestionGroup == "GHQ-28" && w.QuestionNum == "86").Select(s => s.Score ?? 0).FirstOrDefault(),
+                QuestionGHQ28_24 = data.Where(w => w.QuestionGroup == "GHQ-28" && w.QuestionNum == "87").Select(s => s.Score ?? 0).FirstOrDefault(),
+                QuestionGHQ28_25 = data.Where(w => w.QuestionGroup == "GHQ-28" && w.QuestionNum == "88").Select(s => s.Score ?? 0).FirstOrDefault(),
+                QuestionGHQ28_26 = data.Where(w => w.QuestionGroup == "GHQ-28" && w.QuestionNum == "89").Select(s => s.Score ?? 0).FirstOrDefault(),
+                QuestionGHQ28_27 = data.Where(w => w.QuestionGroup == "GHQ-28" && w.QuestionNum == "90").Select(s => s.Score ?? 0).FirstOrDefault(),
+                QuestionGHQ28_28 = data.Where(w => w.QuestionGroup == "GHQ-28" && w.QuestionNum == "91").Select(s => s.Score ?? 0).FirstOrDefault(),
+
+                AnswerGHQ28_1 = data.Where(w => w.QuestionGroup == "GHQ-28" && w.QuestionNum == "64").Select(s => s.ChoiceName).FirstOrDefault(),
+                AnswerGHQ28_2 = data.Where(w => w.QuestionGroup == "GHQ-28" && w.QuestionNum == "65").Select(s => s.ChoiceName).FirstOrDefault(),
+                AnswerGHQ28_3 = data.Where(w => w.QuestionGroup == "GHQ-28" && w.QuestionNum == "66").Select(s => s.ChoiceName).FirstOrDefault(),
+                AnswerGHQ28_4 = data.Where(w => w.QuestionGroup == "GHQ-28" && w.QuestionNum == "67").Select(s => s.ChoiceName).FirstOrDefault(),
+                AnswerGHQ28_5 = data.Where(w => w.QuestionGroup == "GHQ-28" && w.QuestionNum == "68").Select(s => s.ChoiceName).FirstOrDefault(),
+                AnswerGHQ28_6 = data.Where(w => w.QuestionGroup == "GHQ-28" && w.QuestionNum == "69").Select(s => s.ChoiceName).FirstOrDefault(),
+                AnswerGHQ28_7 = data.Where(w => w.QuestionGroup == "GHQ-28" && w.QuestionNum == "70").Select(s => s.ChoiceName).FirstOrDefault(),
+                AnswerGHQ28_8 = data.Where(w => w.QuestionGroup == "GHQ-28" && w.QuestionNum == "71").Select(s => s.ChoiceName).FirstOrDefault(),
+                AnswerGHQ28_9 = data.Where(w => w.QuestionGroup == "GHQ-28" && w.QuestionNum == "72").Select(s => s.ChoiceName).FirstOrDefault(),
+                AnswerGHQ28_10 = data.Where(w => w.QuestionGroup == "GHQ-28" && w.QuestionNum == "73").Select(s => s.ChoiceName).FirstOrDefault(),
+                AnswerGHQ28_11 = data.Where(w => w.QuestionGroup == "GHQ-28" && w.QuestionNum == "74").Select(s => s.ChoiceName).FirstOrDefault(),
+                AnswerGHQ28_12 = data.Where(w => w.QuestionGroup == "GHQ-28" && w.QuestionNum == "75").Select(s => s.ChoiceName).FirstOrDefault(),
+                AnswerGHQ28_13 = data.Where(w => w.QuestionGroup == "GHQ-28" && w.QuestionNum == "76").Select(s => s.ChoiceName).FirstOrDefault(),
+                AnswerGHQ28_14 = data.Where(w => w.QuestionGroup == "GHQ-28" && w.QuestionNum == "77").Select(s => s.ChoiceName).FirstOrDefault(),
+                AnswerGHQ28_15 = data.Where(w => w.QuestionGroup == "GHQ-28" && w.QuestionNum == "78").Select(s => s.ChoiceName).FirstOrDefault(),
+                AnswerGHQ28_16 = data.Where(w => w.QuestionGroup == "GHQ-28" && w.QuestionNum == "79").Select(s => s.ChoiceName).FirstOrDefault(),
+                AnswerGHQ28_17 = data.Where(w => w.QuestionGroup == "GHQ-28" && w.QuestionNum == "80").Select(s => s.ChoiceName).FirstOrDefault(),
+                AnswerGHQ28_18 = data.Where(w => w.QuestionGroup == "GHQ-28" && w.QuestionNum == "81").Select(s => s.ChoiceName).FirstOrDefault(),
+                AnswerGHQ28_19 = data.Where(w => w.QuestionGroup == "GHQ-28" && w.QuestionNum == "82").Select(s => s.ChoiceName).FirstOrDefault(),
+                AnswerGHQ28_20 = data.Where(w => w.QuestionGroup == "GHQ-28" && w.QuestionNum == "83").Select(s => s.ChoiceName).FirstOrDefault(),
+                AnswerGHQ28_21 = data.Where(w => w.QuestionGroup == "GHQ-28" && w.QuestionNum == "84").Select(s => s.ChoiceName).FirstOrDefault(),
+                AnswerGHQ28_22 = data.Where(w => w.QuestionGroup == "GHQ-28" && w.QuestionNum == "85").Select(s => s.ChoiceName).FirstOrDefault(),
+                AnswerGHQ28_23 = data.Where(w => w.QuestionGroup == "GHQ-28" && w.QuestionNum == "86").Select(s => s.ChoiceName).FirstOrDefault(),
+                AnswerGHQ28_24 = data.Where(w => w.QuestionGroup == "GHQ-28" && w.QuestionNum == "87").Select(s => s.ChoiceName).FirstOrDefault(),
+                AnswerGHQ28_25 = data.Where(w => w.QuestionGroup == "GHQ-28" && w.QuestionNum == "88").Select(s => s.ChoiceName).FirstOrDefault(),
+                AnswerGHQ28_26 = data.Where(w => w.QuestionGroup == "GHQ-28" && w.QuestionNum == "89").Select(s => s.ChoiceName).FirstOrDefault(),
+                AnswerGHQ28_27 = data.Where(w => w.QuestionGroup == "GHQ-28" && w.QuestionNum == "90").Select(s => s.ChoiceName).FirstOrDefault(),
+                AnswerGHQ28_28 = data.Where(w => w.QuestionGroup == "GHQ-28" && w.QuestionNum == "91").Select(s => s.ChoiceName).FirstOrDefault()
+
+            };
+            return result;
         }
 
         private async Task<IEnumerable<GetPersonalOfWorkPlaceDto>> GetCountUserWithWorkPlaceAsync()

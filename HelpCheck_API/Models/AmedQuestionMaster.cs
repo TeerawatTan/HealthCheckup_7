@@ -16,6 +16,7 @@ namespace HelpCheck_API.Models
         public string UpdatedBy { get; set; }
         public string QuestionNum { get; set; }
         public bool? IsActive { get; set; }
+        public string QuestionGroup { get; set; }
     }
 
     public class AmedQuestionMapChoiceMaster

@@ -228,6 +228,63 @@ namespace HelpCheck_API.Services.Users
                     Data = Constant.STATUS_DATA_NOT_FOUND
                 };
             }
+            int count = await _questionAndChoiceRepository.CountQuestionAndChoiceAsync(user.ID);
+            string ans40 = "-", ans2q = "NEGATIVE";
+            int ans9q = 0, ansSt5 = 0, ans8q = 0, ansGHQ28Group1 = 0, ansGHQ28Group2 = 0, ansGHQ28Group3 = 0, ansGHQ28Group4 = 0;
+            var q40 = await _questionAndChoiceRepository.GetAnswerByQuestIDAsync(user.ID, 40);
+            if (q40 is not null)
+                ans40 = q40.AnswerKeyIn;
+            var q41 = await _questionAndChoiceRepository.GetAnswerByQuestIDAsync(user.ID, 41);
+            var q42 = await _questionAndChoiceRepository.GetAnswerByQuestIDAsync(user.ID, 42);
+            if ((q41 is not null && q41.ChoiceID == 35) || (q42 is not null && q42.ChoiceID == 35))
+            {
+                ans2q = "POSITIVE";
+            }
+            var question = await _questionAndChoiceRepository.GetAnswerAsync(user.ID, DateTime.Now.Year);
+            if (question is not null && question.Count > 0)
+            {
+                var question9q = question.Where(w => (new[] { 47, 48, 49, 50 }).Contains(w.ChoiceID)).ToList();
+                if (question9q is not null && question9q.Count > 0)
+                {
+                    ans9q += question9q.Sum(s => s.Score ?? 0);
+                }
+                var questionSt5 = question.Where(w => (new[] { 51, 52, 53, 54 }).Contains(w.ChoiceID)).ToList();
+                if (questionSt5 is not null && questionSt5.Count > 0)
+                {
+                    ansSt5 += questionSt5.Sum(s => s.Score ?? 0);
+                }
+                //-------- Add new ----------------
+                // 8Q
+                var question8q = question.Where(w => (new[] { "55", "56", "57", "58", "59", "60", "61", "62", "63" }).Contains(w.QuestionNum)).ToList();
+                if (question8q is not null && question8q.Count > 0)
+                {
+                    ans8q += question8q.Sum(s => s.Score ?? 0);
+                }
+                // GHQ28 1-7
+                var questionGHQ28Group1 = question.Where(w => (new[] { "64", "65", "66", "67", "68", "69", "70" }).Contains(w.QuestionNum)).ToList();
+                if (questionGHQ28Group1 is not null && questionGHQ28Group1.Count > 0)
+                {
+                    ansGHQ28Group1 += questionGHQ28Group1.Sum(s => s.Score ?? 0);
+                }
+                // GHQ28 8-14
+                var questionGHQ28Group2 = question.Where(w => (new[] { "71", "72", "73", "74", "75", "76", "77" }).Contains(w.QuestionNum)).ToList();
+                if (questionGHQ28Group2 is not null && questionGHQ28Group2.Count > 0)
+                {
+                    ansGHQ28Group2 += questionGHQ28Group2.Sum(s => s.Score ?? 0);
+                }
+                // GHQ28 15-21
+                var questionGHQ28Group3 = question.Where(w => (new[] { "78", "79", "80", "81", "82", "83", "84" }).Contains(w.QuestionNum)).ToList();
+                if (questionGHQ28Group3 is not null && questionGHQ28Group3.Count > 0)
+                {
+                    ansGHQ28Group3 += questionGHQ28Group3.Sum(s => s.Score ?? 0);
+                }
+                // GHQ28 22-28
+                var questionGHQ28Group4 = question.Where(w => (new[] { "85", "86", "87", "88", "89", "90", "91" }).Contains(w.QuestionNum)).ToList();
+                if (questionGHQ28Group4 is not null && questionGHQ28Group4.Count > 0)
+                {
+                    ansGHQ28Group4 += questionGHQ28Group4.Sum(s => s.Score ?? 0);
+                }
+            }
 
             var userDto = new GetUserDto
             {
@@ -254,7 +311,16 @@ namespace HelpCheck_API.Services.Users
                 TreatmentID = user.TreatmentID,
                 TreatmentName = _masterTreatmentRepository.GetMasterTreatmentNameByID(user.TreatmentID ?? 0),
                 UserName = user.UserName,
-                ImageUrl = user.ImagePath
+                ImageUrl = user.ImagePath,
+                Question40 = ans40,
+                Question2q = ans2q,
+                Question9q = ans9q,
+                QuestionSt5 = ansSt5,
+                Question8q = ans8q,
+                QuestionGHQ28Group1 = ansGHQ28Group1,
+                QuestionGHQ28Group2 = ansGHQ28Group2,
+                QuestionGHQ28Group3 = ansGHQ28Group3,
+                QuestionGHQ28Group4 = ansGHQ28Group4
             };
 
             return new ResultResponse()

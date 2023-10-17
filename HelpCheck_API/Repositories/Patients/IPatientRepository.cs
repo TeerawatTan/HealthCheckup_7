@@ -23,7 +23,7 @@ namespace HelpCheck_API.Repositories.Patients
         Task<PageginationResultResponse<GetAllPatientAppointmentDto>> GetReportAllPatientWithLastAppointmentAsync(DateTime dt, PageRequestModel filter, CancellationToken cancellationToken);
         Task<List<GetReportDentistCheckDto>> GetReportAllPatientWithDentistCheckAsync();
         Task<int> CountPhysicalWithPatientAsync(DateTime date);
-        Task<List<GetReportDailyPsychiatristCheckDto>> GetPatientWithAnswerDetailAsync(int memberId);
+        Task<GetReportDailyPsychiatristCheckDto> GetPatientWithAnswerDetailAsync(int memberId);
         Task<PageginationResultResponse<GetAllPatientAppointmentDto>> GetAllPatientAppointmnetPaginationAsync(FilterPatientDto filterDto, PageRequestModel pageModel);
     }
 }
