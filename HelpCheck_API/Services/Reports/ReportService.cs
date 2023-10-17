@@ -509,39 +509,98 @@ namespace HelpCheck_API.Services.Reports
                     foreach (var p in appointments.Items.ToList())
                     {
                         GetReportDailyPsychiatristCheckDto reportDto = new GetReportDailyPsychiatristCheckDto();
-                        var ans = await _patientRepository.GetPatientWithAnswerDetailAsync(p.ID);
-                        if (ans is not null && ans.Count > 0)
-                        {
-                            reportDto.MemberID = p.ID;
-                            reportDto.FirstName = p.FirstName;
-                            reportDto.LastName = p.LastName;
-                            reportDto.Hn = p.Hn;
-                            reportDto.IdCard = p.IDCard;
-                            reportDto.WorkPlaceName = p.WorkPlaceName;
-                            reportDto.JobTypeName = p.JobTypeName;
-                            reportDto.BirthDate = p.BirthDate;
-                            reportDto.Sex = p.Sex;
-                            reportDto.TreatmentName = p.TreatmentName;
-                            reportDto.Question2QOne = ans.FirstOrDefault(answer => answer.Question2QOne.HasValue && answer.Question2QOne.Value) is not null;
-                            reportDto.Question2QTwo = ans.FirstOrDefault(answer => answer.Question2QTwo.HasValue && answer.Question2QTwo.Value) is not null;
-                            reportDto.Question9QOne = ans.FirstOrDefault(answer => answer.Question9QOne > 0) is not null ? ans.FirstOrDefault(answer => answer.Question9QOne > 0).Question9QOne : 0;
-                            reportDto.Question9QTwo = ans.FirstOrDefault(answer => answer.Question9QTwo > 0) is not null ? ans.FirstOrDefault(answer => answer.Question9QTwo > 0).Question9QTwo : 0;
-                            reportDto.Question9QThree = ans.FirstOrDefault(answer => answer.Question9QThree > 0) is not null ? ans.FirstOrDefault(answer => answer.Question9QThree > 0).Question9QThree : 0;
-                            reportDto.Question9QFour = ans.FirstOrDefault(answer => answer.Question9QFour > 0) is not null ? ans.FirstOrDefault(answer => answer.Question9QFour > 0).Question9QFour : 0;
-                            reportDto.Question9QFive = ans.FirstOrDefault(answer => answer.Question9QFive > 0) is not null ? ans.FirstOrDefault(answer => answer.Question9QFive > 0).Question9QFive : 0;
-                            reportDto.Question9QSix = ans.FirstOrDefault(answer => answer.Question9QSix > 0) is not null ? ans.FirstOrDefault(answer => answer.Question9QSix > 0).Question9QSix : 0;
-                            reportDto.Question9QSeven = ans.FirstOrDefault(answer => answer.Question9QSeven > 0) is not null ? ans.FirstOrDefault(answer => answer.Question9QSeven > 0).Question9QSeven : 0;
-                            reportDto.Question9QEight = ans.FirstOrDefault(answer => answer.Question9QEight > 0) is not null ? ans.FirstOrDefault(answer => answer.Question9QEight > 0).Question9QEight : 0;
-                            reportDto.Question9QNine = ans.FirstOrDefault(answer => answer.Question9QNine > 0) is not null ? ans.FirstOrDefault(answer => answer.Question9QNine > 0).Question9QNine : 0;
 
-                        }
-                        if (!string.IsNullOrWhiteSpace(p.IDCard) && p.IDCard.Length >= 13)
+                        reportDto.MemberID = p.ID;
+                        reportDto.TitleName = p.TitleName;
+                        reportDto.FirstName = p.FirstName;
+                        reportDto.LastName = p.LastName;
+                        reportDto.Hn = p.Hn;
+                        reportDto.IdCard = p.IDCard;
+                        reportDto.WorkPlaceName = p.WorkPlaceName;
+                        reportDto.JobTypeName = p.JobTypeName;
+                        reportDto.BirthDate = p.BirthDate;
+                        reportDto.Sex = p.Sex;
+                        reportDto.TreatmentName = p.TreatmentName;
+
+                        var ans = await _patientRepository.GetPatientWithAnswerDetailAsync(p.ID);
+                        if (ans is not null)
                         {
-                            checkResultDetailDto = await GetCheckResultAsync(p.IDCard);
-                            if (checkResultDetailDto is not null)
-                            {
-                                reportDto.TitleName = checkResultDetailDto.prename;
-                            }
+                            reportDto.Question9Q_1 = ans.Question9Q_1;
+                            reportDto.Question9Q_2 = ans.Question9Q_2;
+                            reportDto.Question9Q_3 = ans.Question9Q_3;
+                            reportDto.Question9Q_4 = ans.Question9Q_4;
+                            reportDto.Question9Q_5 = ans.Question9Q_5;
+                            reportDto.Question9Q_6 = ans.Question9Q_6;
+                            reportDto.Question9Q_7 = ans.Question9Q_7;
+                            reportDto.Question9Q_8 = ans.Question9Q_8;
+                            reportDto.Question9Q_9 = ans.Question9Q_9;
+
+                            reportDto.Question8Q_1 = ans.Question8Q_1;
+                            reportDto.Question8Q_2 = ans.Question8Q_2;
+                            reportDto.Question8Q_3 = ans.Question8Q_3;
+                            reportDto.Question8Q_4 = ans.Question8Q_4;
+                            reportDto.Question8Q_5 = ans.Question8Q_5;
+                            reportDto.Question8Q_6 = ans.Question8Q_6;
+                            reportDto.Question8Q_7 = ans.Question8Q_7;
+                            reportDto.Question8Q_8 = ans.Question8Q_8;
+                            reportDto.Question8Q_9 = ans.Question8Q_9;
+
+                            reportDto.QuestionGHQ28_1 = ans.QuestionGHQ28_1;
+                            reportDto.QuestionGHQ28_2 = ans.QuestionGHQ28_2;
+                            reportDto.QuestionGHQ28_3 = ans.QuestionGHQ28_3;
+                            reportDto.QuestionGHQ28_4 = ans.QuestionGHQ28_4;
+                            reportDto.QuestionGHQ28_5 = ans.QuestionGHQ28_5;
+                            reportDto.QuestionGHQ28_6 = ans.QuestionGHQ28_6;
+                            reportDto.QuestionGHQ28_7 = ans.QuestionGHQ28_7;
+                            reportDto.QuestionGHQ28_8 = ans.QuestionGHQ28_8;
+                            reportDto.QuestionGHQ28_9 = ans.QuestionGHQ28_9;
+                            reportDto.QuestionGHQ28_10 = ans.QuestionGHQ28_10;
+                            reportDto.QuestionGHQ28_11 = ans.QuestionGHQ28_11;
+                            reportDto.QuestionGHQ28_12 = ans.QuestionGHQ28_12;
+                            reportDto.QuestionGHQ28_13 = ans.QuestionGHQ28_13;
+                            reportDto.QuestionGHQ28_14 = ans.QuestionGHQ28_14;
+                            reportDto.QuestionGHQ28_15 = ans.QuestionGHQ28_15;
+                            reportDto.QuestionGHQ28_16 = ans.QuestionGHQ28_16;
+                            reportDto.QuestionGHQ28_17 = ans.QuestionGHQ28_17;
+                            reportDto.QuestionGHQ28_18 = ans.QuestionGHQ28_18;
+                            reportDto.QuestionGHQ28_19 = ans.QuestionGHQ28_19;
+                            reportDto.QuestionGHQ28_20 = ans.QuestionGHQ28_20;
+                            reportDto.QuestionGHQ28_21 = ans.QuestionGHQ28_21;
+                            reportDto.QuestionGHQ28_22 = ans.QuestionGHQ28_22;
+                            reportDto.QuestionGHQ28_23 = ans.QuestionGHQ28_23;
+                            reportDto.QuestionGHQ28_24 = ans.QuestionGHQ28_24;
+                            reportDto.QuestionGHQ28_25 = ans.QuestionGHQ28_25;
+                            reportDto.QuestionGHQ28_26 = ans.QuestionGHQ28_26;
+                            reportDto.QuestionGHQ28_27 = ans.QuestionGHQ28_27;
+                            reportDto.QuestionGHQ28_28 = ans.QuestionGHQ28_28;
+                            reportDto.AnswerGHQ28_1 = ans.AnswerGHQ28_1;
+                            reportDto.AnswerGHQ28_2 = ans.AnswerGHQ28_2;
+                            reportDto.AnswerGHQ28_3 = ans.AnswerGHQ28_3;
+                            reportDto.AnswerGHQ28_4 = ans.AnswerGHQ28_4;
+                            reportDto.AnswerGHQ28_5 = ans.AnswerGHQ28_5;
+                            reportDto.AnswerGHQ28_6 = ans.AnswerGHQ28_6;
+                            reportDto.AnswerGHQ28_7 = ans.AnswerGHQ28_7;
+                            reportDto.AnswerGHQ28_8 = ans.AnswerGHQ28_8;
+                            reportDto.AnswerGHQ28_9 = ans.AnswerGHQ28_9;
+                            reportDto.AnswerGHQ28_10 = ans.AnswerGHQ28_10;
+                            reportDto.AnswerGHQ28_11 = ans.AnswerGHQ28_11;
+                            reportDto.AnswerGHQ28_12 = ans.AnswerGHQ28_12;
+                            reportDto.AnswerGHQ28_13 = ans.AnswerGHQ28_13;
+                            reportDto.AnswerGHQ28_14 = ans.AnswerGHQ28_14;
+                            reportDto.AnswerGHQ28_15 = ans.AnswerGHQ28_15;
+                            reportDto.AnswerGHQ28_16 = ans.AnswerGHQ28_16;
+                            reportDto.AnswerGHQ28_17 = ans.AnswerGHQ28_17;
+                            reportDto.AnswerGHQ28_18 = ans.AnswerGHQ28_18;
+                            reportDto.AnswerGHQ28_19 = ans.AnswerGHQ28_19;
+                            reportDto.AnswerGHQ28_20 = ans.AnswerGHQ28_20;
+                            reportDto.AnswerGHQ28_21 = ans.AnswerGHQ28_21;
+                            reportDto.AnswerGHQ28_22 = ans.AnswerGHQ28_22;
+                            reportDto.AnswerGHQ28_23 = ans.AnswerGHQ28_23;
+                            reportDto.AnswerGHQ28_24 = ans.AnswerGHQ28_24;
+                            reportDto.AnswerGHQ28_25 = ans.AnswerGHQ28_25;
+                            reportDto.AnswerGHQ28_26 = ans.AnswerGHQ28_26;
+                            reportDto.AnswerGHQ28_27 = ans.AnswerGHQ28_27;
+                            reportDto.AnswerGHQ28_28 = ans.AnswerGHQ28_28;
                         }
                         result.Add(reportDto);
                     }
